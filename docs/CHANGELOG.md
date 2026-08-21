@@ -165,3 +165,24 @@
 - `APK/v7/VERSION.txt`
 
 ---
+
+## v8（战斗加速按钮实现 + GLM视觉解析skill）
+**日期**：2026-08-21
+
+### 一、战斗加速按钮（v8 APK）
+- 交付 `APK/v8/像素世界探险_v8.apk`
+- 按钮位置：游戏顶部（"商店"和"铁匠铺"之间，坐标约 416,522）
+- 点击循环切换 1x/2x/5x/10x/50x/100x，调用 cc.kSpeed(n)
+- **修复根因**：之前所有版本按钮不显示是因为调用引擎不存在的 `setLocalZOrder` → 改 `addChild(snd, 999999)`
+- 验证：GLM 视觉识别出按钮"加速1x"在 (416,522)
+
+### 二、GLM-4.6V-Flash 视觉 skill（图片解析能力）
+- 底座模型 deepseek-v4-flash 仅文本能力 → 配置 GLM-4.6V-Flash 免费视觉模型解析图片
+- 安装 `glm-vision-mcp`，改 `config.py` 模型名为免费的 `glm-4.6v-flash`（默认是付费 `glm-4.5v`）
+- 工具脚本：`tools/vision_analyze.py`（GLM优先 + 本机OCR兜底）
+- MCP配置：`E:\Codebuddy\.mcp.json`
+- 工作流：传图 → GLM解析(OCR/UI布局/报错) → 纯文本给底座模型
+- 验证：成功解析游戏截图（文字+UI坐标+加速按钮位置）
+- 注意：免费模型高峰期限流(1305)，工具已自动重试+OCR兜底
+
+---
