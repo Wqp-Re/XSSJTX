@@ -24586,8 +24586,8 @@ fixdesc: function() {
                     ns = ns.replace(/获得\s*×5/g, "获得×1").replace(/获得\s*X5/g, "获得X1");
                     ns = ns.replace(/重铸石\*5/g, "重铸石*100").replace(/洗练卷\*5/g, "洗练卷*100");
                     ns = ns.replace(/五个重铸石/g, "一百个重铸石").replace(/五个洗练卷/g, "一百个洗练卷");
-                    // 加成倍率: "100%" → "500%" (5倍加成)
-                    if (s === "100%") ns = "500%";
+                    // 加成倍率: 经验+100% 等 → +500% (5倍加成)
+                    ns = ns.replace(/(经验|掉率|闪光|橙装)\+100%/g, "$1+500%");
                     if (ns !== s) lb.string = ns;
                 }
                 var cs = n.children || [];
