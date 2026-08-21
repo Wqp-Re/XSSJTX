@@ -160,7 +160,40 @@ cc.Notifier.on("gameGetItem", this, this.gameGetItem.bind(this));
 this.btn_atk.on(cc.Node.EventType.TOUCH_START, this._touchStartEventatk, this);
 this.btn_atk.on(cc.Node.EventType.TOUCH_END, this._touchEndEventatk, this);
 this.btn_atk.on(cc.Node.EventType.TOUCH_CANCEL, this._touchEndEventatk, this);
+this._initSpeedBtn();
 n.desys();
+},
+_initSpeedBtn: function() {
+this.speedarr = [1, 2, 5, 10, 50, 100];
+this.speedidx = 0;
+cc.kSpeed(1);
+var size = cc.view.getVisibleSize();
+var self = this;
+var snd = new cc.Node("SpeedBtn");
+snd.parent = this.node;
+snd.setPosition(cc.v2(size.width / 2 - 70, size.height / 2 - 60));
+var gr = snd.addComponent(cc.Graphics);
+gr.fillColor = cc.color(0, 0, 0, 170);
+gr.strokeColor = cc.color(255, 215, 0, 255);
+gr.lineWidth = 2;
+gr.roundRect(-55, -22, 110, 44, 10);
+gr.fill();
+gr.stroke();
+var lb = snd.addComponent(cc.Label);
+lb.string = "速度 1x";
+lb.fontSize = 22;
+lb.lineHeight = 30;
+lb.color = cc.color(255, 255, 0, 255);
+snd.addComponent(cc.Button);
+snd.on(cc.Node.EventType.TOUCH_END, function() {
+    self.speedidx = (self.speedidx + 1) % self.speedarr.length;
+    var sp = self.speedarr[self.speedidx];
+    cc.kSpeed(sp);
+    lb.string = "速度 " + sp + "x";
+    if (cc.uiHelper && cc.uiHelper.showTips) cc.uiHelper.showTips("战斗加速 " + sp + "x");
+}, this);
+this.speedbtn = snd;
+this.speedlb = lb;
 },
 onDestroy: function() {
 cc.gamepause = !1;
