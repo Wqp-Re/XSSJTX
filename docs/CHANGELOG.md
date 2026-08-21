@@ -70,3 +70,30 @@
 - 验证：APK 内 jsc 解密后 6 项修改全部存在
 
 ---
+
+## v3（改包名修安装 + 加速按钮移到设置）
+**日期**：2026-08-21
+**说明**：v2 在安卓12 仍报"安装失败"——根因是同包名不同签名冲突。v3 改包名 + 加速按钮移到设置界面。
+
+| 版本 | 更新项 | 涉及模块 | 类型 |
+|------|--------|----------|------|
+| v3 | 修改包名 `com.jinlin.xssstx` → `com.jinlin.xssstx.v2` | AndroidManifest | 修复 |
+| v3 | 升级 versionCode=2 / versionName=1.0.2 | AndroidManifest | 修复 |
+| v3 | 加速按钮从广告屋(uiahouse)移到设置界面(uisetting) | `uisetting` + `uiadhouse` | 功能调整 |
+
+**关键修复逻辑**
+- v2 报"安装失败/请重新下载安装包"的真因：手机已装原版 `com.jinlin.xssstx`(正式签名)，debug签名版同包名不同签名被 Android 拒绝
+- v3 改包名 `com.jinlin.xssstx.v2` → 全新应用，无冲突，可直接安装
+- 补全 v1+v2+v3 签名 + targetSdk=31（满足安卓12）
+
+**加速按钮新位置**：设置界面 `uisetting.js`
+- `onLoad` 末尾调用 `_initSpeedBtn()`
+- 动态创建按钮节点（cc.Graphics 圆角蓝底 + 青色文字），挂到设置面板节点，位置底部
+- 点击循环切换 1x/2x/5x/10x/50x/100x，调用 `cc.kSpeed(n)`
+
+**构建产物**
+- `APK/v3/像素世界探险_v3.apk`（33.1MB，新包名 `com.jinlin.xssstx.v2`）
+- `APK/v3/VERSION.txt`
+- 打包流程改为 apktool（改 manifest 包名/版本）→ 替换 jsc → 重打包 → zipalign → apksigner
+
+---
