@@ -24586,6 +24586,8 @@ fixdesc: function() {
                     ns = ns.replace(/获得\s*×5/g, "获得×1").replace(/获得\s*X5/g, "获得X1");
                     ns = ns.replace(/重铸石\*5/g, "重铸石*100").replace(/洗练卷\*5/g, "洗练卷*100");
                     ns = ns.replace(/五个重铸石/g, "一百个重铸石").replace(/五个洗练卷/g, "一百个洗练卷");
+                    // 加成倍率: "100%" → "500%" (5倍加成)
+                    if (s === "100%") ns = "500%";
                     if (ns !== s) lb.string = ns;
                 }
                 var cs = n.children || [];
@@ -24619,10 +24621,10 @@ cc.uiHelper.showTips("获得", "icons/items/gold", void 0, "x" + t.goldv);
 });
 },
 onchongzhu: function() {
-this.ongetitem(30002, 5);
+this.ongetitem(30002, 100);
 },
 onxilian: function() {
-this.ongetitem(30003, 5);
+this.ongetitem(30003, 100);
 },
 onexp: function() {
 i.adWatch("adhouse", function() {
@@ -24652,7 +24654,7 @@ onvititem: function() {
 this.ongetitem(20502, 1);
 },
 onmanghe: function() {
-this.ongetitem(35001, 1);
+this.ongetitem(35001, 10);
 },
 close: function() {
 this.node.destroy();
@@ -24677,7 +24679,7 @@ cc.uiHelper.showTips("获得", "icons/items/" + s[38005].icon, void 0, "x50");
 });
 },
 onjinengshui: function() {
-this.ongetitem(30004, 3);
+this.ongetitem(30004, 100);
 },
 onhugan: function() {
 i.adWatch("adhouse", function() {

@@ -44,10 +44,10 @@ cc.uiHelper.showTips("获得", "icons/items/gold", void 0, "x" + t.goldv);
 });
 },
 onchongzhu: function() {
-this.ongetitem(30002, 5);
+this.ongetitem(30002, 100);
 },
 onxilian: function() {
-this.ongetitem(30003, 5);
+this.ongetitem(30003, 100);
 },
 onexp: function() {
 i.adWatch("adhouse", function() {
@@ -77,7 +77,7 @@ onvititem: function() {
 this.ongetitem(20502, 1);
 },
 onmanghe: function() {
-this.ongetitem(35001, 1);
+this.ongetitem(35001, 10);
 },
 close: function() {
 this.node.destroy();
@@ -85,8 +85,8 @@ this.node.destroy();
 ondaliy: function() {
 var t = this;
 i.adWatch("adhouse", function() {
-cc.playerData.additembyid(30004, 5, !0);
-cc.uiHelper.showTips("获得", "icons/items/" + s[30004].icon, void 0, "x5");
+cc.playerData.additembyid(30004, 100, !0);
+cc.uiHelper.showTips("获得", "icons/items/" + s[30004].icon, void 0, "x100");
 cc.playerData.additembyid(35002, 1, !0);
 cc.uiHelper.showTips("获得", "icons/items/" + s[35002].icon, void 0, "x1");
 cc.playerData.dailyreward = !1;
@@ -95,14 +95,14 @@ t.refreshdaily();
 },
 onfumolihe: function() {
 i.adWatch("adhouse", function() {
-cc.playerData.additembyid(38004, 3, !0);
-cc.uiHelper.showTips("获得", "icons/items/" + s[38004].icon, void 0, "x3");
-cc.playerData.additembyid(38005, 1, !0);
-cc.uiHelper.showTips("获得", "icons/items/" + s[38005].icon, void 0, "x1");
+cc.playerData.additembyid(38004, 100, !0);
+cc.uiHelper.showTips("获得", "icons/items/" + s[38004].icon, void 0, "x100");
+cc.playerData.additembyid(38005, 50, !0);
+cc.uiHelper.showTips("获得", "icons/items/" + s[38005].icon, void 0, "x50");
 });
 },
 onjinengshui: function() {
-this.ongetitem(30004, 3);
+this.ongetitem(30004, 100);
 },
 onhugan: function() {
 i.adWatch("adhouse", function() {
