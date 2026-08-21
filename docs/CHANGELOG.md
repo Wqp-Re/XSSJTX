@@ -119,3 +119,49 @@
 - 验证：APK 内 jsc 解密后 7 项修改全部存在
 
 ---
+
+## v5（修复点设置菜单卡死）
+**日期**：2026-08-21
+**说明**：v4 用户反馈"点设置菜单直接卡死"。根因：v4 在设置界面 onLoad 同步执行加速按钮创建代码，cc.find("Canvas")/cc.Graphics/cc.Button 在该时机抛异常，中断设置界面初始化。
+
+| 版本 | 更新项 | 涉及模块 | 类型 |
+|------|--------|----------|------|
+| v5 | 加速按钮创建改为延迟执行(scheduleOnce 0.1s) | `uisetting` | 修复 |
+| v5 | 整个 _initSpeedBtn 用 try/catch 包裹，异常静默 | `uisetting` | 修复 |
+| v5 | 背景绘制(cc.Graphics)单独 try/catch | `uisetting` | 修复 |
+
+**修复逻辑**
+- v4 的 `_initSpeedBtn` 无异常保护，若某 API 抛异常会中断设置界面 onLoad → 卡死
+- v5：`onLoad` 里 `this.scheduleOnce(this._initSpeedBtn.bind(this), 0.1)` 延迟执行（节点就绪后）
+- `_initSpeedBtn` 整体 try/catch + 背景单独 try/catch，任何异常静默捕获
+- 模拟器实测 v5：TypeError=0, FATAL=0, JS ERROR=0，启动正常无崩溃
+
+**构建产物**
+- `APK/v5/像素世界探险_v5.apk`（33.1MB，包名 `com.jinlin.xssstx.v2`）
+- `APK/v5/VERSION.txt`
+- 验证：ACORN 语法 OK，uisetting 模块括号平衡(0,0,0)
+
+---
+
+## v7（全局写死 5 倍加速）
+**日期**：2026-08-21
+**说明**：v3-v6 动态创建加速按钮一直无法显示（Cocos 动态 UI 在该环境不可靠）。用户要求"直接全局写死 5 倍加速看效果"。
+
+| 版本 | 更新项 | 涉及模块 | 类型 |
+|------|--------|----------|------|
+| v7 | `cc.director._kSpeed` 初始值改为 5 | `Utils` | 功能 |
+| v7 | `cc.kSpeed(t)` 强制返回 5（忽略参数） | `Utils` | 功能 |
+| v7 | 移除 v3-v6 所有动态按钮代码 | 各模块 | 清理 |
+
+**实现逻辑**
+- `calculateDeltaTime`：`this._deltaTime *= this._kSpeed`，`_kSpeed=5` 则 5 倍速
+- 强制 `cc.kSpeed(t) = 5`，防止游戏内其他代码调用 `cc.kSpeed(1)` 把速度重置
+- 全局生效（移动/攻击/技能CD/Buff/挂机结算）
+
+**实测**：模拟器 v7 启动正常（TypeError=0, FATAL=0），5 倍速无崩溃
+
+**构建产物**
+- `APK/v7/像素世界探险_v7.apk`（33.1MB，包名 `com.jinlin.xssstx.v2`）
+- `APK/v7/VERSION.txt`
+
+---
