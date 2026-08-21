@@ -47,3 +47,26 @@
 - 真机安装如遇 `INSTALL_FAILED_USER_RESTRICTED`，需在手机设置允许"未知来源/USB安装"
 
 ---
+
+## v2（去除新手教程 + 加速按钮移到广告屋）
+**日期**：2026-08-21
+**说明**：根据用户测试反馈修复 3 个问题。新版放 `APK/v2/`。
+
+| 版本 | 更新项 | 涉及模块 | 类型 |
+|------|--------|----------|------|
+| v2 | 安卓12安装失败修复：补全v2/v3签名（v1只有v1，安卓12拒装） | AndroidManifest + apksigner | 修复 |
+| v2 | 去除新手教程：`cc.newbiebattle` 强制 false，直接进 main 场景 | `UILogin` | 修复 |
+| v2 | 加速按钮位置调整：v1 在主战斗界面→改到广告屋 uiadhouse 界面底部 | `uiadhouse`（移除 `gameUI` 加速） | 功能调整 |
+
+**实现细节**
+- 安卓12 错误码 -2 是因原版 APK 只有 v1 签名，API 31+ 要求至少 v2 签名 → 现用 apksigner 签 v1+v2+v3
+- `UILogin.js` 第85行 `cc.newbiebattle = !t` 改为 `cc.newbiebattle = !1`；第116行 `cc.newbiebattle ? loadScene("game") : loadScene("main")` 改为直接 `loadScene("main")`
+- 加速按钮从 `gameUI` 移到 `uiadhouse`：在 uiadhouse 的 `start()` 末尾调用 `_initAdhouseSpeedBtn()`，动态创建按钮节点（cc.Graphics 圆角黑底 + 黄色文字），挂在 `this.node`（广告屋节点），点击循环切换 1x/2x/5x/10x/50x/100x，调用 `cc.kSpeed(n)`
+
+**构建产物**
+- `APK/v2/像素世界探险_v2.apk`（33.4MB）
+- `APK/v2/VERSION.txt`（更新说明）
+- 签名：Android Debug（v1+v2+v3）
+- 验证：APK 内 jsc 解密后 6 项修改全部存在
+
+---
