@@ -1,6 +1,35 @@
 
-cc._spArr=[1,5,20,50,100];cc._spIdx=0;cc._spNode=null;
-cc._spApply=function(){if(cc.kSpeed&&cc._spArr&&cc._spIdx!==undefined)cc.kSpeed(cc._spArr[cc._spIdx]);};
+cc._spArr=[1,3,5,10,15,20,30,50,100];cc._spIdx=0;cc._spNode=null;
+cc._spApply=function(){if(cc.kSpeed&&cc._spArr&&cc._spIdx!==undefined)cc.kSpeed(cc._spArr[cc._spIdx]);cc.kDebuff&&cc.kDebuff(1);};
+cc._abyssTimerNode=null;
+cc.abyssFail=function(){
+  if(cc._abyssFailed)return;
+  cc._abyssFailed=!0;
+  cc.abyssMode=!1;
+  cc.playerData.abyssfloor=1;
+  cc.playerData.saveflag=!0;
+  try{cc._abyssTimerNode&&cc._abyssTimerNode.isValid&&cc._abyssTimerNode.destroy();}catch(e){}
+  cc._abyssTimerNode=null;
+  cc.uiHelper&&cc.uiHelper.showTips("深渊挑战超时!重置至第1层");
+  cc.director.loadScene("main");
+};
+cc._abyssTimerMake=function(){
+  try{
+    var p=cc.find("Canvas");if(!p)return;
+    if(cc._abyssTimerNode&&cc._abyssTimerNode.isValid){
+      cc._abyssTimerNode.getComponent(cc.Label).string="深渊 "+(cc.abyssTimeLeft||0)+"s";
+      return;
+    }
+    var sz=cc.view.getVisibleSize();
+    var n=new cc.Node("AbyssTimer");
+    p.addChild(n,999998);
+    n.setPosition(cc.v2(sz.width/2,sz.height/2-90));
+    var lb=n.addComponent(cc.Label);
+    lb.string="深渊 "+(cc.abyssTimeLeft||0)+"s";
+    lb.fontSize=34;lb.lineHeight=42;lb.color=cc.color(255,210,0,255);
+    cc._abyssTimerNode=n;
+  }catch(e){}
+};
 cc._spMake=function(){
     try{
         cc._spApply();
@@ -22,7 +51,7 @@ cc._spMake=function(){
         cc._spNode=n;
     }catch(e){}
 };
-setInterval(function(){cc._spMake();},1000);
+setInterval(function(){cc._spMake();try{if(cc.abyssMode){if(void 0===cc.abyssTimeLeft)cc.abyssTimeLeft=30;if(cc.abyssTimeLeft>0)cc.abyssTimeLeft--;if(cc.abyssTimeLeft<=0){cc.abyssFail();return;}cc._abyssTimerMake();}else if(cc._abyssTimerNode){cc._abyssTimerNode.isValid&&cc._abyssTimerNode.destroy();cc._abyssTimerNode=null;}}catch(e){}},1000);
 window.__require = function t(e, i, s) {
 function n(o, c) {
 if (!i[o]) {
@@ -763,10 +792,12 @@ Utils: [ function(t, e) {
 cc._RF.push(e, "daefdxxdapI0KzTlk5MfR+g", "Utils");
 var i = 0, s = 0, n = 0, a = 0, o = 0, c = 0, r = 0, l = 0, h = 0, p = 0, d = 0, u = 0, f = 0, g = 0, y = [ new cc.Color(240, 255, 255), new cc.Color(220, 255, 255), new cc.Color(200, 255, 255), new cc.Color(180, 255, 255), new cc.Color(160, 255, 255), new cc.Color(140, 255, 255), new cc.Color(120, 255, 255), new cc.Color(20, 255, 255) ], m = t("gameConfig").itemConfig, b = t("monstercfg");
 cc.director._kSpeed = 1;
+cc.director._kBuff = 1;
+cc.kDebuff = function(t) { cc.director._kBuff = t; };
 var v = cc.Director.prototype.calculateDeltaTime;
 cc.director.calculateDeltaTime = function(t) {
 v.call(this, t);
-this._deltaTime *= this._kSpeed;
+this._deltaTime *= this._kSpeed * this._kBuff;
 };
 cc.kSpeed = function(t) {
 cc.director._kSpeed = t;
@@ -1808,6 +1839,20 @@ propertys: [ [ n.xixue, 30 ] ],
 res: "buff5",
 resdown: 1
 },
+5001: { name: "战意(攻击遗物)", life: 999999, propertys: [ [ n.atk + 100, 30 ] ], res: "buff1", resdown: 1 },
+5002: { name: "猎杀(暴击遗物)", life: 999999, propertys: [ [ n.cri, 15 ] ], res: "buff2", resdown: 1 },
+5003: { name: "嗜血(吸血遗物)", life: 999999, propertys: [ [ n.xixue, 20 ] ], res: "buff3", resdown: 1 },
+5004: { name: "巨盾(生命遗物)", life: 999999, propertys: [ [ n.maxhp, 1000 ] ], res: "buff4", resdown: 1 },
+5005: { name: "疾风(攻速遗物)", life: 999999, propertys: [ [ n.atkspeed, 20 ] ], res: "buff5", resdown: 1 },
+5006: { name: "穿甲(爆伤遗物)", life: 999999, propertys: [ [ n.cridmg, 50 ] ], res: "buff1", resdown: 1 },
+5007: { name: "狂战(攻击遗物)", life: 999999, propertys: [ [ n.atk, 50 ] ], res: "buff2", resdown: 1 },
+5008: { name: "坚韧(防御遗物)", life: 999999, propertys: [ [ n.def, 50 ] ], res: "buff3", resdown: 1 },
+5009: { name: "探宝(爆率遗物)", life: 999999, propertys: [ [ 22, 10 ] ], res: "buff4", resdown: 1 },
+5010: { name: "荆棘(终伤遗物)", life: 999999, propertys: [ [ n.atk + 100, 30 ] ], res: "buff1", resdown: 1 },
+5011: { name: "铁壁(免伤遗物)", life: 999999, propertys: [ [ n.def + 100, 30 ], [ n.mdef + 100, 30 ] ], res: "buff3", resdown: 1 },
+5012: { name: "剧毒(秒毒遗物)", life: 999999, mdmg: 5, res: "buff5", resdown: 1 },
+5013: { name: "疾影(闪避遗物)", life: 999999, propertys: [ [ n.flee, 20 ] ], res: "buff2", resdown: 1 },
+5014: { name: "再生(生命遗物)", life: 999999, propertys: [ [ n.maxhp, 300 ] ], res: "buff4", resdown: 1 },
 3004: {
 name: "命中光环",
 life: 1,
@@ -2155,7 +2200,7 @@ this.dir.y = this.target.dir.y;
 }
 if (this.cfg.timescale) {
 this.target.timescale = 1 / this.cfg.timescale;
-cc.kSpeed(this.cfg.timescale);
+cc.kDebuff(this.cfg.timescale);
 }
 this.khp && (this.target.fanshangkill += this.khp);
 this.cfg.heal && this.target.heal(this.target.matk * this.cfg.heal / 100 * this.target.healdmg);
@@ -2223,7 +2268,7 @@ this.target.flagdead2 = !0;
 this.cfg.removebullet && cc.battlelogic.createbulletsground(this.skill, [ [ this.cfg.removebullet, 0, 0 ] ], this.target, this.target);
 if (this.cfg.timescale) {
 this.target.timescale = 1;
-cc.kSpeed(1);
+cc.kDebuff(1);
 }
 this.khp && (this.target.fanshangkill -= this.khp);
 if (this.cfg.propertys) {
@@ -3336,15 +3381,18 @@ y: this.y
 });
 }
 if (e) {
-var s = this.speed * t;
-this.movedelay -= t;
+void 0 === this.timetoatk && (this.timetoatk = this.atktime);
+var STEP = 0.05, steps = t > STEP ? Math.ceil(t / STEP) : 1, sub = t / steps, si, s, a, n;
+for (si = 0; si < steps && e; si++) {
+s = this.speed * sub;
+this.movedelay -= sub;
 if (this.movedelay <= 0) {
 if (this.isfollow) {
 if (!this.followtarget) {
-var n = this.gamelogic.findnpcwithcmp(this, this.enemycamp, !1);
+n = this.gamelogic.findnpcwithcmp(this, this.enemycamp, !1);
 n.length > 0 && (this.followtarget = n[i.randintSeed(n.length)]);
 }
-this.followtarget && this.followtarget.isdead() ? this.followtarget = null : this.chanagerot(t);
+this.followtarget && this.followtarget.isdead() ? this.followtarget = null : this.chanagerot(sub);
 }
 if (this.flowuser) {
 this.x = this.user.x + this.startx;
@@ -3354,27 +3402,28 @@ this.x = this.x + this.dir.x * s;
 this.y = this.y + this.dir.y * s;
 }
 }
-this.cfg.dirspeed && (this.dir = i.dirRotate(this.dir, this.cfg.dirspeed * t));
+this.cfg.dirspeed && (this.dir = i.dirRotate(this.dir, this.cfg.dirspeed * sub));
 if (this.rotateuser) {
 this.dir = this.user.dir;
 this.x = this.x + this.dir.x * this.rotateuser;
 this.y = this.y + this.dir.y * this.rotateuser;
 }
-this.autodir2 && (this.ag2 += t * this.autodir2);
-this.timetoatk -= t;
+this.autodir2 && (this.ag2 += sub * this.autodir2);
+this.timetoatk -= sub;
 if (this.timetoatk <= 0) {
 this.timetoatk = this.atktime;
 if (this.atkbullet) {
 this.autodir2 && (this.dir2 = i.getdirbyag(this.ag2));
 cc.battlelogic.createonebullet(this.skill, this.atkbullet, this.x, this.y, this.dir2, this.user);
 }
-var a = this.checkhit();
+a = this.checkhit();
 a && 0 == this.notdestroy && (e = !1);
 a && this.cfg.hitres && cc.battlelogic.createeff({
 eff: this.cfg.hitres,
 x: this.x + this.dir.x * this.width / 2,
 y: this.y + this.dir.y * this.width / 2
 });
+}
 }
 }
 this.alive = e;
@@ -3951,8 +4000,8 @@ this.nd_yuangu.active = !this.nd_gold.active;
 }
 },
 onbuy: function() {
-var t = cc.playerData.buyitem(this.itemid, this.count, this.target.ygmode, this.ygprize);
-0 == t ? cc.uiHelper.showTips("获得", "icons/items/" + this.cfg.icon, void 0, "x" + this.count) : cc.uiHelper.showTips([ "购买成功", "背包已满", "金钱不足", "远古石不足" ][t]);
+var t = cc.playerData.buyitem(this.itemid, this.count, this.target.ygmode, this.ygprize, this.target.currency);
+0 == t ? cc.uiHelper.showTips("获得", "icons/items/" + this.cfg.icon, void 0, "x" + this.count) : cc.uiHelper.showTips([ "购买成功", "背包已满", "金钱不足", "代币不足" ][t]);
 }
 });
 cc._RF.pop();
@@ -9623,6 +9672,26 @@ qulity: 5,
 subtype: 1,
 cost: 1e3
 },
+30010: {
+type: 3,
+icon: "item1",
+des: "蕴含灵气的进化之石，用于宠物进化",
+name: "灵兽进化石",
+id: 30010,
+qulity: 5,
+subtype: 1,
+cost: 5e3
+},
+30020: {
+type: 3,
+icon: "item1",
+des: "深渊之塔的专属货币，可在深渊商店兑换成长材料",
+name: "深渊币",
+id: 30020,
+qulity: 5,
+subtype: 1,
+cost: 1
+},
 34062: {
 type: 3,
 icon: "item26",
@@ -10460,7 +10529,25 @@ id: 38024,
 qulity: 4,
 subtype: 8,
 cost: 3e3
-}
+},
+39001: { type: 3, icon: "item21", des: "常见淡水鱼", name: "鲤鱼", id: 39001, qulity: 1, subtype: 8, cost: 100 },
+39002: { type: 3, icon: "item21", des: "常见的肉食鱼", name: "鲈鱼", id: 39002, qulity: 2, subtype: 8, cost: 200 },
+39003: { type: 3, icon: "item21", des: "鳞片泛银光", name: "银鱼", id: 39003, qulity: 3, subtype: 8, cost: 400 },
+39004: { type: 3, icon: "item21", des: "金色鳞片,罕见", name: "金鲤", id: 39004, qulity: 4, subtype: 8, cost: 800 },
+39005: { type: 3, icon: "item21", des: "蓝色条纹,珍稀", name: "蓝纹鱼", id: 39005, qulity: 5, subtype: 8, cost: 1600 },
+39006: { type: 3, icon: "item21", des: "翡翠光泽,远古", name: "翡翠鱼", id: 39006, qulity: 6, subtype: 8, cost: 3200 },
+39007: { type: 3, icon: "item21", des: "龙形传说之鱼", name: "龙鱼", id: 39007, qulity: 7, subtype: 8, cost: 6400 },
+39008: { type: 3, icon: "item21", des: "蕴含神秘力量的鱼", name: "星辉鱼", id: 39008, qulity: 7, subtype: 8, cost: 12800 },
+39009: { type: 3, icon: "item21", des: "滑溜的鳗鱼", name: "鳗鱼", id: 39009, qulity: 4, subtype: 8, cost: 1600 },
+39010: { type: 3, icon: "item21", des: "八足触手", name: "章鱼", id: 39010, qulity: 4, subtype: 8, cost: 1600 },
+39011: { type: 3, icon: "item21", des: "墨汁喷涌", name: "鱿鱼", id: 39011, qulity: 4, subtype: 8, cost: 1600 },
+39012: { type: 3, icon: "item21", des: "海洋霸主", name: "鲨鱼", id: 39012, qulity: 5, subtype: 8, cost: 3200 },
+39013: { type: 3, icon: "item21", des: "聪明的海洋精灵", name: "海豚", id: 39013, qulity: 5, subtype: 8, cost: 3200 },
+39014: { type: 3, icon: "item21", des: "古老的长寿鱼", name: "鲟鱼", id: 39014, qulity: 5, subtype: 8, cost: 3200 },
+39015: { type: 3, icon: "item21", des: "如利剑般的旗鱼", name: "旗鱼", id: 39015, qulity: 6, subtype: 8, cost: 6400 },
+39016: { type: 3, icon: "item21", des: "传说中的鱼", name: "传说之鱼", id: 39016, qulity: 7, subtype: 8, cost: 12800 },
+39017: { type: 3, icon: "item21", des: "透明的幽灵鱼", name: "幽灵鱼", id: 39017, qulity: 6, subtype: 8, cost: 6400 },
+39018: { type: 3, icon: "item21", des: "万鱼之王的龙鱼", name: "龙王鱼", id: 39018, qulity: 7, subtype: 8, cost: 25600 },
 },
 setcfg: {
 9006: {
@@ -11900,6 +11987,7 @@ cc.Notifier.on("onskillcd", this, this.onskillcd.bind(this));
 cc.Notifier.on("playerdie", this, this.playerdie.bind(this));
 cc.Notifier.on("bosswarning", this, this.bosswarning.bind(this));
 cc.Notifier.on("gameGetItem", this, this.gameGetItem.bind(this));
+cc.Notifier.on("rogueRelicChoose", this, this.showRogueRelic.bind(this));
 this.btn_atk.on(cc.Node.EventType.TOUCH_START, this._touchStartEventatk, this);
 this.btn_atk.on(cc.Node.EventType.TOUCH_END, this._touchEndEventatk, this);
 this.btn_atk.on(cc.Node.EventType.TOUCH_CANCEL, this._touchEndEventatk, this);
@@ -11913,10 +12001,145 @@ cc.Notifier.off("onskillcd", this);
 cc.Notifier.off("playerdie", this);
 cc.Notifier.off("bosswarning", this);
 cc.Notifier.off("gameGetItem", this);
+cc.Notifier.off("rogueRelicChoose", this);
 this.btn_atk.off(cc.Node.EventType.TOUCH_START, this._touchStartEventatk, this);
 this.btn_atk.off(cc.Node.EventType.TOUCH_END, this._touchEndEventatk, this);
 this.btn_atk.off(cc.Node.EventType.TOUCH_CANCEL, this._touchEndEventatk, this);
-cc.kSpeed(1);
+cc.kDebuff(1);
+},
+showRogueRelic: function() {
+try {
+if (this._rgorePanel) return;
+var _this = this;
+var panel = new cc.Node("rgore_panel");
+panel.setContentSize(640, 460);
+panel.setPosition(0, 0);
+var pg = panel.addComponent(cc.Graphics);
+pg.fillColor = new cc.Color(0, 0, 0, 230);
+pg.rect(-320, -230, 640, 460);
+pg.fill();
+var title = new cc.Node("title");
+var tlb = title.addComponent(cc.Label);
+tlb.fontSize = 34;
+tlb.string = "选择肉鸽遗物 (第" + cc.rogueFloor + "层)";
+tlb.color = cc.Color.YELLOW;
+tlb.lineHeight = 42;
+title.setPosition(0, 190);
+panel.addChild(title);
+var relics = [ 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010, 5011, 5012, 5013, 5014 ];
+var qName = [ "普通", "稀有", "史诗", "传说" ];
+var qColor = [ "#FFFFFF", "#3D8BFF", "#B84DFF", "#FFD700" ];
+var qMult = [ 1, 2, 3, 5 ];
+for (var k = 0; k < 3; k++) {
+var pick = relics[Math.floor(Math.random() * relics.length)];
+var idx = relics.indexOf(pick);
+relics.splice(idx, 1);
+var rq = Math.floor(Math.random() * 4);
+(function(bid, q, xpos) {
+var btn = new cc.Node("relic" + bid + "_" + q);
+var g = btn.addComponent(cc.Graphics);
+g.fillColor = cc.Color.fromHEX(qColor[q]);
+g.rect(-130, -55, 260, 110);
+g.fill();
+var lbn = new cc.Node("lb");
+var lb = lbn.addComponent(cc.Label);
+lb.fontSize = 24;
+lb.isSystemFontUsed = true;
+lb.lineHeight = 30;
+lb.color = cc.Color.WHITE;
+lb.overflow = cc.Label.Overflow.SHRINK;
+lbn.setContentSize(240, 90);
+var base = _this._relicBase(bid);
+var strength = qMult[q];
+lb.string = "[" + qName[q] + "] " + base.name + "\n" + base.des.replace("#", strength);
+lbn.setPosition(0, 0);
+btn.addChild(lbn);
+btn.setPosition(xpos, -30);
+btn.on(cc.Node.EventType.TOUCH_END, function() {
+cc.rogueRelics = cc.rogueRelics || [];
+cc.rogueRelics.push({ id: bid, q: q, st: strength });
+_this._applyRelics(cc.battlelogic.player);
+cc.uiHelper.showTips("获得遗物:" + qName[q] + base.name);
+_this._rgorePanel.destroy();
+_this._rgorePanel = null;
+cc.rogueChoices = null;
+setTimeout(function() {
+cc.battling = !0;
+cc.director.loadScene("game");
+}, 500);
+});
+panel.addChild(btn);
+})(pick, rq, (k - 1) * 220);
+}
+this._rgorePanel = panel;
+cc.uiHelper && cc.uiHelper.node ? cc.uiHelper.node.addChild(panel, 99999) : this.node.addChild(panel, 99999);
+} catch (err) { cc.log("rogue relic err:" + err); }
+},
+_applyRelics: function(player) {
+try {
+if (!player) return;
+cc.rogueRelics = cc.rogueRelics || [];
+var pv = { 9: 0, 18: 0, 19: 0, 8: 0, 17: 0, 21: 0, 13: 0, 16: 0, 109: 0, 113: 0 };
+for (var i = 0; i < cc.rogueRelics.length; i++) {
+var r = cc.rogueRelics[i];
+var st = r.st || 1;
+switch (r.id) {
+case 5001: pv[109] += 30 * st; break;
+case 5002: pv[18] += 15 * st; break;
+case 5003: pv[19] += 20 * st; break;
+case 5004: pv[8] += 1000 * st; break;
+case 5005: pv[17] += 20 * st; break;
+case 5006: pv[21] += 50 * st; break;
+case 5007: pv[9] += 50 * st; break;
+case 5008: pv[13] += 50 * st; break;
+case 5009: pv[22] = (pv[22] || 0) + 10 * st; break;
+case 5010: pv[109] += 30 * st; break;
+case 5011: pv[113] += 30 * st; break;
+case 5012: pv[9] += 40 * st; break;
+case 5013: pv[16] += 20 * st; break;
+case 5014: pv[8] += 300 * st; break;
+}
+}
+if (player.gamevaule) {
+for (var k in pv) if (pv[k]) player.gamevaule.addpv(parseInt(k), pv[k]);
+player.shuxingrefresh && player.shuxingrefresh();
+}
+} catch (err) { cc.log("applyRelics err:" + err); }
+},
+_relicBase: function(bid) {
+var M = {
+5001: { name: "战意", des: "攻击+#%", buffs: [ [ 5001, 30 ] ] },
+5002: { name: "猎杀", des: "暴击+#", buffs: [ [ 5002, 15 ] ] },
+5003: { name: "嗜血", des: "吸血+#", buffs: [ [ 5003, 20 ] ] },
+5004: { name: "巨盾", des: "生命+#", buffs: [ [ 5004, 1000 ] ] },
+5005: { name: "疾风", des: "攻速+#", buffs: [ [ 5005, 20 ] ] },
+5006: { name: "穿甲", des: "爆伤+#", buffs: [ [ 5006, 50 ] ] },
+5007: { name: "狂战", des: "攻击+#", buffs: [ [ 5007, 50 ] ] },
+5008: { name: "坚韧", des: "防御+#", buffs: [ [ 5008, 50 ] ] },
+5009: { name: "探宝", des: "爆率+#%(boss必掉)", buffs: [ [ 5009, 1 ] ] },
+5010: { name: "荆棘", des: "终伤+#%", buffs: [ [ 5010, 30 ] ] },
+5011: { name: "铁壁", des: "免伤+#%", buffs: [ [ 5011, 30 ] ] },
+5012: { name: "剧毒", des: "攻击附加中毒", buffs: [ [ 5012, 1 ] ] },
+5013: { name: "疾影", des: "闪避+#", buffs: [ [ 5013, 20 ] ] },
+5014: { name: "再生", des: "生命上限+#", buffs: [ [ 5014, 300 ] ] }
+};
+return M[bid] || { name: "遗物", des: "", buffs: [] };
+},
+_relicName: function(bid) {
+return (this._relicBase(bid) || {}).name || "遗物";
+},
+_relicName: function(bid) {
+var names = {
+5001: "战意:攻击+30%",
+5002: "猎杀:暴击+15",
+5003: "嗜血:吸血+20",
+5004: "巨盾:生命+1000",
+5005: "疾风:攻速+20",
+5006: "穿甲:爆伤+50",
+5007: "狂战:攻击+50",
+5008: "坚韧:防御+50"
+};
+return names[bid] || "遗物";
 },
 updatetips: function(t) {
 for (var e = this.tipsarr.length - 1; e >= 0; e--) {
@@ -12107,7 +12330,9 @@ this.nd_boss.active = !1;
 cc.uiHelper.showTips("战斗胜利");
 this.hasover = !0;
 cc.wujin && (cc.wujincount += cc.wujindijin);
-(cc.guaji || cc.wujin) && this.scheduleOnce(function() {
+if (cc.rogue) {
+this.nd_boss.active = !1;
+} else (cc.guaji || cc.wujin) && this.scheduleOnce(function() {
 cc.director.loadScene("guajitemp");
 }, 3);
 }
@@ -12137,6 +12362,8 @@ cc.gameMgr.catch = 100;
 },
 onclickback: function() {
 cc.battling = !1;
+cc.rogue = !1;
+cc.abyssMode = !1;
 cc.director.loadScene("main");
 },
 playerdie: function() {
@@ -12161,6 +12388,8 @@ clickfq: function() {
 this.guajitime = 0;
 cc.soundMgr.playSound("run");
 cc.battling = !1;
+cc.rogue = !1;
+cc.abyssMode = !1;
 cc.director.loadScene("main");
 },
 bosswarning: function() {},
@@ -12679,6 +12908,34 @@ this.playerData = cc.playerData;
 var t = s.randint(1e3);
 cc.hell ? cc.stageid = 100 : cc.wujin && (cc.stageid = cc.wujincount % 50 + 1);
 var e = y[cc.stageid];
+if (cc.rogue) {
+var rfl = cc.rogueFloor || 1;
+var rbase = y[Math.min(rfl, 100)] || y[1];
+e = {};
+for (var rk in rbase) e[rk] = rbase[rk];
+// 层数难度曲线(非线性,后期加速): 基础+线性+平方加速
+e.lv = Math.min(999, 5 + Math.floor(rfl * 1.5) + Math.floor(rfl * rfl / 40));
+// 诅咒: boss大幅增强(高风险高回报)
+if (cc.rogueCurse) e.lv = Math.min(999, Math.floor(e.lv * 1.6));
+// boss词缀(每层随机1个): 0无 1狂暴(攻+) 2铁壁(防+) 3巨兽(血+) 4迅捷(速+)
+var affix = Math.floor(Math.random() * 5);
+cc.rogueBossAffix = affix;
+cc.rogueFloorLv = e.lv;
+e.count = 1;
+e.finishmonster = "";
+if (!e.boss) e.boss = (e.monsters || "1:1").split("|")[0].split(":")[0];
+} else if (cc.abyssMode) {
+// 深渊爬塔: 单挑boss, boss属性x5
+var afl = cc.playerData.abyssfloor || 1;
+var abase = y[Math.min(afl, 100)] || y[1];
+e = {};
+for (var ek in abase) e[ek] = abase[ek];
+e.lv = Math.min(999, 1 + Math.floor(afl * 1.5));
+e.count = 1;
+e.finishmonster = "";
+if (!e.boss) e.boss = (e.monsters || "1:1").split("|")[0].split(":")[0];
+cc.abyssTimeLeft = 30; cc._abyssFailed = !1;
+}
 this.mapsize = e.size;
 this.mapsize || (this.mapsize = 15);
 this.mappixisizew = 64 * this.mapsize;
@@ -12691,6 +12948,26 @@ isplayer: !0,
 x: this.mappixisizew / 2,
 y: this.mappixisizeh / 2
 });
+if (cc.rogue && this.player) {
+try { cc.relicApply && cc.relicApply(this.player); } catch (re) { cc.log("reapply relics err:" + re); }
+// 严格rogue: 新一局开始时把商店永久加成折算成一次性基础值(不随遗物叠加)
+try {
+var rp = cc.playerData && cc.playerData.rgorePerm;
+if (rp && this.player.gamevaule) {
+if (rp.atk) this.player.gamevaule.addpv(9, rp.atk * 20);
+if (rp.hp) this.player.gamevaule.addpv(8, rp.hp * 500);
+if (rp.cri) this.player.gamevaule.addpv(18, rp.cri * 5);
+if (rp.xixue) this.player.gamevaule.addpv(19, rp.xixue * 5);
+if (rp.def) this.player.gamevaule.addpv(13, rp.def * 30);
+if (rp.cridmg) this.player.gamevaule.addpv(21, rp.cridmg * 20);
+if (rp.flee) this.player.gamevaule.addpv(16, rp.flee * 10);
+if (rp.fin) this.player.gamevaule.addpv(109, rp.fin * 15);
+if (rp.mit) this.player.gamevaule.addpv(113, rp.mit * 10);
+if (rp.atkspd) this.player.gamevaule.addpv(17, rp.atkspd * 5);
+this.player.shuxingrefresh && this.player.shuxingrefresh();
+}
+} catch (re2) { cc.log("rogue perm err:" + re2); }
+}
 this.playerData.battlepet && (this.petplayer = this.createnpc({
 camp: 1,
 lv: this.playerData.battlepet.lv,
@@ -12706,7 +12983,15 @@ cc.soundMgr.playbgm("lv" + e.mainpart);
 this.isshousha = cc.stageid == cc.playerData.stage;
 this.dixing = m[e.mainpart];
 this.createmap(t, e);
-for (var i = 0; i < this.maxmonstercount; i++) this.createmonster();
+if (cc.rogue) {
+this.maxmonstercount = 0;
+this.bosscount = 0;
+this.createboss();
+} else if (cc.abyssMode) {
+this.maxmonstercount = 0;
+this.bosscount = 0;
+this.createboss();
+} else for (var i = 0; i < this.maxmonstercount; i++) this.createmonster();
 };
 this.createmonster = function() {
 k = s.dirRotate(k, s.randintSeed(360));
@@ -12763,6 +13048,24 @@ y: this.center.y + .12,
 cfgid: this.bossid,
 isboss: !0
 });
+if (cc.rogue && cc.rogueBossAffix && this.bossobj && this.bossobj.gamevaule) {
+var af = cc.rogueBossAffix;
+var fl = cc.rogueFloor || 1;
+if (1 == af) this.bossobj.gamevaule.addpv(109, 50); // 狂暴:攻击+50%
+else if (2 == af) this.bossobj.gamevaule.addpv(113, 50); // 铁壁:防御+50%
+else if (3 == af) this.bossobj.gamevaule.addpv(108, 100); // 巨兽:生命+100%
+else if (4 == af) this.bossobj.gamevaule.addpv(117, 50); // 迅捷:攻速+50%
+this.bossobj.shuxingrefresh && this.bossobj.shuxingrefresh();
+}
+if (cc.abyssMode && this.bossobj) {
+  try {
+    var ab = this.bossobj;
+    ab.maxhp *= 5; ab.hp = ab.maxhp;
+    ab.atk *= 5; ab.matk *= 5;
+    ab.def *= 5; ab.mdef *= 5;
+    ab.shuxingrefresh && ab.shuxingrefresh();
+  } catch (abe) {}
+}
 this.bossstep = 2;
 };
 this.createmap = function(t, e) {
@@ -15977,6 +16280,24 @@ f: 1
 }, {
 k: "兑换码",
 f: 13
+}, {
+k: "肉鸽秘境",
+f: 20
+}, {
+k: "肉鸽商店",
+f: 21
+}, {
+k: "钓鱼",
+f: 22
+}, {
+k: "鱼图鉴",
+f: 23
+}, {
+k: "深渊之塔",
+f: 18
+}, {
+k: "深渊商店",
+f: 19
 } ]
 },
 2: {
@@ -16085,7 +16406,7 @@ f: 15
 k: "无尽1w层",
 f: 16
 } ]
-}
+},
 };
 cc._RF.pop();
 }, {} ],
@@ -16244,6 +16565,14 @@ this.nowweapon.fmcfg && this.nowweapon.fmcfg.atkbuff && (this.fmatkbuf = this.no
 this.shuxingrefresh = function() {
 this.isplayer && this.gamevaule.refreshplayerbp(this.weaponidx);
 this.refreshproprety();
+// 严格rogue: 局内属性封顶(防秒杀, 保留构筑空间)
+if (cc.rogue && this.isplayer) {
+if (this.atk > 10000) this.atk = 10000;
+if (this.matk > 10000) this.matk = 10000;
+if (this.maxhp > 50000) this.maxhp = 50000;
+if (this.cri > 50) this.cri = 50;
+if (this.hp > this.maxhp) this.hp = this.maxhp;
+}
 };
 this.ckickweapon = function() {
 if (!this.isdead()) {
@@ -16685,7 +17014,26 @@ e.gainexp(this.lv) && cc.battlelogic.petplayer.gamevaule.initpet(e.id, e);
 }
 var i = cc.playerData.stage;
 cc.shenyuan && (i = cc.playerData.stagesy);
-!this.isboss || cc.stageid != i || cc.hell || cc.wujin || cc.playerData.addstage();
+if (cc.rogue && this.isboss) {
+var coin = 5 + Math.floor((cc.rogueFloor || 1) * 3);
+if (cc.rogueCurse) coin *= 3;
+cc.playerData.changeRgore(coin);
+cc.rogueFloor = (cc.rogueFloor || 1) + 1;
+cc.rogueChoices = null;
+cc.rogueCurse = !1;
+if (cc.showRogueRelicPick) {
+var _self = this;
+setTimeout(function() { cc.showRogueRelicPick(); }, 400);
+} else cc.Notifier.emit("rogueRelicChoose");
+} else if (cc.abyssMode && this.isboss) {
+var acoin = Math.min(500, 5 + Math.floor((cc.playerData.abyssfloor || 1) * 2));
+cc.playerData.abysscoin = (cc.playerData.abysscoin || 0) + acoin;
+cc.playerData.additembyid(30020, acoin, !0);
+cc.playerData.abyssfloor = (cc.playerData.abyssfloor || 1) + 1;
+cc.playerData.saveflag = !0;
+cc.uiHelper.showTips("深渊第" + ((cc.playerData.abyssfloor || 1) - 1) + "层通关!获得深渊币x" + acoin + ",进入第" + cc.playerData.abyssfloor + "层");
+setTimeout(function() { cc.battling = !0; cc.director.loadScene("game"); }, 1000);
+} else !this.isboss || cc.stageid != i || cc.hell || cc.wujin || cc.playerData.addstage();
 }
 } else for (t = this.buffarr.length - 1; t >= 0; t--) this.buffarr[t].life < 100 && (this.buffarr[t].life = 0);
 if (this.isbaby) {
@@ -17223,6 +17571,7 @@ this.skills = [ 1 ];
 this.isboss = e;
 this.lighting = s;
 this.zhuanshen = 0;
+this.evolve = 0;
 this.setname();
 this.setbp();
 this.setnextexp();
@@ -17272,7 +17621,7 @@ if (this.lighting) {
 e += 1;
 i += 1;
 }
-for (var s = 0; s < 6; s++) this.bp.push(t[s] + e + i * this.zhuanshen - n.randintSeed(5));
+for (var s = 0; s < 6; s++) this.bp.push(t[s] + e + i * this.zhuanshen + (this.evolveBonus && this.evolveBonus[this.evolve] || 0) - n.randintSeed(5));
 };
 this.caldiaodang = function() {
 this.diaodangarr = [];
@@ -17315,8 +17664,10 @@ this.uuid = t.uuid;
 this.isboss = t.isboss;
 this.lighting = t.lighting;
 this.zhuanshen = 0;
+this.evolve = 0;
 this.exp < 0 && (this.exp = 0);
 t.zhuanshen && (this.zhuanshen = t.zhuanshen);
+t.evolve && (this.evolve = t.evolve);
 this.cfg = i[this.id];
 this.bp = [];
 this.skills = [];
@@ -17338,6 +17689,7 @@ t.lighting = this.lighting;
 t.bp = this.bp;
 t.skills = this.skills;
 t.zhuanshen = this.zhuanshen;
+t.evolve = this.evolve;
 return t;
 };
 this.gainexpv = function(t) {
@@ -17370,6 +17722,42 @@ this.lighting && (this.bp[s] += 1);
 }
 cc.playerData.saveflag = !0;
 return !0;
+};
+this.evolvemax = 10;
+this.evolveBonus = [2, 3, 5, 7, 10, 14, 19, 25, 32, 40];
+this.evolveStoneCost = [1, 2, 3, 5, 8, 12, 18, 25, 35, 50];
+this.getevolvecost = function() {
+return 5e3 * (this.evolve + 1) * (this.evolve + 1);
+};
+this.getevolvestone = function() {
+return 30010;
+};
+this.getevolvestoneneed = function() {
+return this.evolveStoneCost[this.evolve] || 1;
+};
+this.canevolve = function() {
+return this.evolve < this.evolvemax;
+};
+this.getevolvebonus = function() {
+return this.evolveBonus[this.evolve] || 1;
+};
+this.doevolve = function() {
+if (this.evolve >= this.evolvemax) return 3;
+var t = this.getevolvecost();
+if (!(cc.playerData.gold >= t)) return 2;
+var need = this.getevolvestoneneed();
+var st = cc.playerData.finditembyid(this.getevolvestone());
+if (!st || st.count < need) return 1;
+cc.playerData.changegold(-t);
+cc.playerData.xiaohaoitembyid(this.getevolvestone(), need);
+var bonus = this.getevolvebonus();
+this.evolve++;
+for (var s = 0; s < this.bp.length; s++) {
+this.bp[s] += bonus;
+this.isboss && (this.bp[s] += bonus);
+}
+cc.playerData.saveflag = !0;
+return 0;
 };
 };
 cc._RF.pop();
@@ -17443,6 +17831,11 @@ this.fmarr = [];
 this.pfarr = [];
 this.petskills = [];
 this.petbook = {};
+this.fishbook = {};
+this.fishAuto = !1;
+this.fishcount = 0;
+this.fishRodLv = 1;
+this.fishStats = {};
 this.initcfg();
 this.player = new d();
 this.battlepet = null;
@@ -17460,6 +17853,10 @@ this.adcount = 0;
 this.launchtime = 0;
 this.needrefreshbook = !0;
 this.petscore = 0;
+this.rgoreCrystal = 0;
+this.rgorePerm = {};
+this.abyssfloor = 1;
+this.abysscoin = 0;
 };
 this.hasgetcode = function(t) {
 for (var e = !1, i = 0; i < this.libaoarr.length; i++) if (this.libaoarr[i] == t) {
@@ -17717,7 +18114,8 @@ return !0;
 return !1;
 };
 this.newgame = function() {
-this.gold = 3e3;
+this.gold = 1e8;
+this.rgoreCrystal = 1e8;
 this.player.init();
 this.player.newgame();
 };
@@ -17736,7 +18134,16 @@ libaoarr: this.libaoarr,
 dailyreward: this.dailyreward,
 newbiemode2: this.newbiemode2,
 launchtime: this.launchtime,
-petbook: this.petbook
+rgoreCrystal: this.rgoreCrystal,
+rgorePerm: this.rgorePerm,
+petbook: this.petbook,
+fishbook: this.fishbook,
+fishAuto: this.fishAuto,
+fishcount: this.fishcount,
+fishRodLv: this.fishRodLv,
+fishStats: this.fishStats,
+abyssfloor: this.abyssfloor,
+abysscoin: this.abysscoin
 };
 this.battlepet && (t.battlepet = this.battlepet.uuid);
 t.itembag = [];
@@ -17801,8 +18208,17 @@ this.stage = n.stage;
 this.libaoarr = n.libaoarr;
 this.launchtime = n.launchtime;
 this.petbook = n.petbook;
+this.fishbook = n.fishbook || {};
+this.fishAuto = n.fishAuto || !1;
+this.fishcount = n.fishcount || 0;
+this.fishRodLv = n.fishRodLv || 1;
+this.fishStats = n.fishStats || {};
+this.abyssfloor = n.abyssfloor || 1;
+this.abysscoin = n.abysscoin || 0;
 this.libaoarr || (this.libaoarr = []);
 n.stagesy && (this.stagesy = n.stagesy);
+n.rgoreCrystal && (this.rgoreCrystal = n.rgoreCrystal);
+n.rgorePerm && (this.rgorePerm = n.rgorePerm);
 for (var l = 0; l < n.equipbag.length; l++) (d = new c().initwithsave(n.equipbag[l])) && this.equipbag.push(d);
 for (l = 0; l < n.bankequip.length; l++) (d = new c().initwithsave(n.bankequip[l])) && this.bankequip.push(d);
 for (l = 0; l < n.itembag.length; l++) (d = new h().initwithsave(n.itembag[l])) && this.itembag.push(d);
@@ -17873,6 +18289,25 @@ this.petscore = t;
 this.needrefreshbook = !1;
 return this.petscore;
 };
+this.getfishcount = function() {
+var t = 0;
+if (this.fishbook) for (var e in this.fishbook) t += this.fishbook[e];
+return t;
+};
+this.getfishspec = function() {
+var t = 0;
+if (this.fishbook) for (var e in this.fishbook) if (this.fishbook[e] > 0) t++;
+return t;
+};
+this.getfishbsproperty = function() {
+var prop = [];
+var n = this.getfishspec();
+// 每解锁1种鱼: 全属性成长+1, 攻击+10, 生命+100
+if (n > 0) prop.push([ 9, n * 10 ]);
+prop.push([ 8, n * 100 ]);
+prop.push([ 121, n * 2 ]);
+return prop;
+};
 this.getpetbaoshang = function() {
 var t = 2 * this.getbookscore();
 return Math.floor(t);
@@ -17887,8 +18322,26 @@ property: [ [ 21, this.getpetbaoshang() ] ]
 };
 };
 this.getplayerbsproperty = function() {
+var prop = [ [ 121, this.getplayerbaoshang() ] ];
+if (this.fishbook) {
+var fp = this.getfishbsproperty();
+for (var fi = 0; fi < fp.length; fi++) prop.push(fp[fi]);
+}
+if (cc.rogue) return { property: prop };
+if (this.rgorePerm) {
+if (this.rgorePerm.atk) prop.push([ 9, this.rgorePerm.atk * 20 ]);
+if (this.rgorePerm.hp) prop.push([ 8, this.rgorePerm.hp * 500 ]);
+if (this.rgorePerm.cri) prop.push([ 18, this.rgorePerm.cri * 5 ]);
+if (this.rgorePerm.xixue) prop.push([ 19, this.rgorePerm.xixue * 5 ]);
+if (this.rgorePerm.def) prop.push([ 13, this.rgorePerm.def * 30 ]);
+if (this.rgorePerm.cridmg) prop.push([ 21, this.rgorePerm.cridmg * 20 ]);
+if (this.rgorePerm.flee) prop.push([ 16, this.rgorePerm.flee * 10 ]);
+if (this.rgorePerm.fin) prop.push([ 109, this.rgorePerm.fin * 15 ]);
+if (this.rgorePerm.mit) prop.push([ 113, this.rgorePerm.mit * 10 ]);
+if (this.rgorePerm.atkspd) prop.push([ 17, this.rgorePerm.atkspd * 5 ]);
+}
 return {
-property: [ [ 121, this.getplayerbaoshang() ] ]
+property: prop
 };
 };
 this.getscorebyid = function(t) {
@@ -17919,6 +18372,25 @@ this.changegold = function(t) {
 this.saveflag = !0;
 this.gold += t;
 cc.Notifier.emit("goldchange");
+};
+this.changeRgore = function(t) {
+this.saveflag = !0;
+this.rgoreCrystal += t;
+cc.Notifier.emit("rgorechange");
+};
+this.getPermCost = function(k) {
+return { atk: 500, hp: 300, cri: 800, xixue: 800, def: 400, cridmg: 700, flee: 500, fin: 900, mit: 900, atkspd: 600 }[k] || 500;
+};
+this.getPermLv = function(k) {
+return (this.rgorePerm && this.rgorePerm[k]) || 0;
+};
+this.buyPerm = function(k) {
+var cost = this.getPermCost(k);
+if (this.rgoreCrystal < cost) return 1;
+this.rgoreCrystal -= cost;
+this.rgorePerm[k] = (this.rgorePerm[k] || 0) + 1;
+this.saveflag = !0;
+return 0;
 };
 this.finditembyid = function(t) {
 for (var e = this.itembag.length - 1; e >= 0; e--) if (this.itembag[e].id == t) return this.itembag[e];
@@ -18038,8 +18510,8 @@ a && this.xiaohaoitembyid(i, s);
 this.saveflag = !0;
 return o;
 };
-this.buyitem = function(t, e, i, s) {
-if (i) return this.buytimebyitem(t, e, 30005, s);
+this.buyitem = function(t, e, i, s, c) {
+if (i) return this.buytimebyitem(t, e, c || 30005, s);
 var n = g[t], a = n.cost;
 a || (a = 100);
 e || (e = 1);
@@ -24160,6 +24632,14 @@ this.player.ctrl.moving = !0;
 },
 update: function(t) {
 this.checkjiadian();
+// 挂机自动钓鱼: 每15秒自动钓一条(需开启fishAuto)
+if (cc.playerData && cc.playerData.fishAuto) {
+this._fishAutoT = (this._fishAutoT || 0) + t;
+if (this._fishAutoT >= 15) {
+this._fishAutoT = 0;
+this._fishCatch && this._fishCatch(null);
+}
+}
 if (!this.nodeupdate) {
 for (var e = this.playerarr.length - 1; e >= 0; e--) this.playerarr[e].doupdate(t, this.pzarr);
 this.nd_map.x = -this.player.x;
@@ -24315,6 +24795,526 @@ cc.uiHelper.showTips("下载成功");
 createpetbook: function() {
 var t = cc.instantiate(this.pb_petbook);
 this.node.addChild(t);
+},
+createRgoreShop: function() {
+try {
+if (this._rgoreShop) return;
+var _this = this;
+var panel = new cc.Node("rgore_shop");
+panel.setContentSize(620, 860);
+panel.setPosition(0, 0);
+var g = panel.addComponent(cc.Graphics);
+g.fillColor = new cc.Color(0, 0, 0, 240);
+g.rect(-310, -430, 620, 860);
+g.fill();
+var title = new cc.Node("title");
+var tlb = title.addComponent(cc.Label);
+tlb.fontSize = 28;
+tlb.string = "肉鸽商店 (结晶:" + cc.playerData.rgoreCrystal + ")";
+tlb.color = cc.Color.YELLOW;
+tlb.lineHeight = 36;
+title.setPosition(0, 400);
+panel.addChild(title);
+var perms = [ [ "atk", "攻击强化", "攻击+20/级" ], [ "hp", "生命强化", "生命+500/级" ], [ "cri", "暴击强化", "暴击+5/级" ], [ "xixue", "吸血强化", "吸血+5/级" ], [ "def", "防御强化", "防御+30/级" ], [ "cridmg", "爆伤强化", "爆伤+20/级" ], [ "flee", "闪避强化", "闪避+10/级" ], [ "fin", "终伤强化", "终伤+15%/级" ], [ "mit", "免伤强化", "免伤+10%/级" ], [ "atkspd", "攻速强化", "攻速+5/级" ] ];
+for (var k = 0; k < perms.length; k++) {
+(function(p, pname, pdes, ypos) {
+var btn = new cc.Node("perm" + p);
+btn.setContentSize(540, 60);
+var bg = btn.addComponent(cc.Graphics);
+bg.fillColor = new cc.Color(40, 40, 120);
+bg.rect(-270, -28, 540, 56);
+bg.fill();
+var lbn = new cc.Node("lb");
+var lb = lbn.addComponent(cc.Label);
+lb.fontSize = 22;
+lb.isSystemFontUsed = true;
+lb.lineHeight = 28;
+lb.color = cc.Color.WHITE;
+lb.overflow = cc.Label.Overflow.SHRINK;
+lbn.setContentSize(520, 44);
+var lv = cc.playerData.getPermLv(p);
+var cost = cc.playerData.getPermCost(p);
+lb.string = pname + " Lv." + lv + "  [" + pdes + "]  消耗" + cost + "结晶";
+lbn.setPosition(0, 0);
+btn.addChild(lbn);
+btn.setPosition(0, ypos);
+btn.on(cc.Node.EventType.TOUCH_END, function() {
+var r = cc.playerData.buyPerm(p);
+if (0 == r) {
+cc.uiHelper.showTips(pname + "升级成功!");
+_this._rgoreShop.destroy();
+_this._rgoreShop = null;
+_this.createRgoreShop();
+} else cc.uiHelper.showTips("结晶不足");
+});
+panel.addChild(btn);
+})(perms[k][0], perms[k][1], perms[k][2], 350 - k * 68);
+}
+var close = new cc.Node("close");
+close.setContentSize(260, 60);
+var cg = close.addComponent(cc.Graphics);
+cg.fillColor = new cc.Color(160, 30, 30);
+cg.rect(-130, -30, 260, 60);
+cg.fill();
+var clbn = new cc.Node("clbn");
+var clb = clbn.addComponent(cc.Label);
+clb.fontSize = 28;
+clb.string = "返回关闭";
+clb.isSystemFontUsed = true;
+clb.lineHeight = 36;
+clb.color = cc.Color.WHITE;
+clbn.setContentSize(260, 60);
+clbn.setPosition(0, 0);
+close.addChild(clbn);
+close.setPosition(0, -380);
+close.on(cc.Node.EventType.TOUCH_END, function() {
+_this._rgoreShop.destroy();
+_this._rgoreShop = null;
+});
+panel.addChild(close);
+this._rgoreShop = panel;
+var canv2 = cc.find("Canvas") || this.node;
+if (canv2) canv2.addChild(panel, 99999);
+panel.setPosition(0, 0);
+panel.on(cc.Node.EventType.TOUCH_START, function(e) { e.stopPropagation(); });
+} catch (err) { cc.log("rgore shop err:" + err); }
+},
+createfishing: function() {
+try {
+if (this._fishPanel) return;
+var _this = this;
+var panel = new cc.Node("fish_panel");
+panel.setContentSize(620, 480);
+panel.setPosition(0, 0);
+var g = panel.addComponent(cc.Graphics);
+g.fillColor = new cc.Color(15, 15, 30, 235);
+g.rect(-310, -240, 620, 480);
+g.fill();
+var title = new cc.Node("title");
+var tlb = title.addComponent(cc.Label);
+tlb.fontSize = 34;
+tlb.string = "钓鱼 (累计:" + cc.playerData.fishcount + "条)";
+tlb.color = cc.Color.YELLOW;
+tlb.isBold = true;
+tlb.lineHeight = 42;
+title.setPosition(0, 200);
+panel.addChild(title);
+// 钓鱼进度条(星露谷式) - 纵向
+var bar = new cc.Node("fishbar");
+bar.setContentSize(40, 260);
+var bg = bar.addComponent(cc.Graphics);
+bg.fillColor = new cc.Color(80, 80, 80);
+bg.rect(-20, -130, 40, 260);
+bg.fill();
+bar.setPosition(-180, -30);
+panel.addChild(bar);
+// 目标鱼(在条内上下移动)
+var fish = new cc.Node("targetfish");
+fish.setContentSize(30, 30);
+var fg = fish.addComponent(cc.Graphics);
+fg.fillColor = new cc.Color(50, 200, 50);
+fg.rect(-15, -15, 30, 30);
+fg.fill();
+fish.setPosition(0, 0);
+bar.addChild(fish);
+// 游标(玩家按住控制, 判定区)
+var cur = new cc.Node("cursor");
+cur.setContentSize(36, 80);
+var cg = cur.addComponent(cc.Graphics);
+cg.fillColor = new cc.Color(255, 215, 0, 150);
+cg.rect(-18, -40, 36, 80);
+cg.fill();
+cur.setPosition(0, 0);
+bar.addChild(cur);
+// 累积条(满=成功) - 用Label显示进度
+var accum = new cc.Node("accum");
+accum.setContentSize(120, 40);
+var alab = accum.addComponent(cc.Label);
+alab.fontSize = 22;
+alab.string = "捕获:30%";
+alab.color = new cc.Color(50, 150, 255);
+alab.isSystemFontUsed = true;
+accum.setPosition(90, -140);
+panel.addChild(accum);
+// 开始按钮
+var startbtn = new cc.Node("start");
+startbtn.setContentSize(200, 70);
+var sg = startbtn.addComponent(cc.Graphics);
+sg.fillColor = new cc.Color(40, 120, 40);
+sg.rect(-100, -35, 200, 70);
+sg.fill();
+var slb = new cc.Node("slb");
+var sl = slb.addComponent(cc.Label);
+sl.fontSize = 28;
+sl.string = "抛竿";
+sl.color = cc.Color.WHITE;
+sl.isSystemFontUsed = true;
+slb.setPosition(0, 0);
+startbtn.addChild(slb);
+startbtn.setPosition(180, 130);
+panel.addChild(startbtn);
+// 挂机开关
+var autobtn = new cc.Node("auto");
+autobtn.setContentSize(200, 70);
+var abg = autobtn.addComponent(cc.Graphics);
+abg.fillColor = new cc.Color(120, 120, 40);
+abg.rect(-100, -35, 200, 70);
+abg.fill();
+var alb = new cc.Node("alb");
+var al = alb.addComponent(cc.Label);
+al.fontSize = 24;
+al.string = cc.playerData.fishAuto ? "挂机钓鱼:开" : "挂机钓鱼:关";
+al.color = cc.Color.WHITE;
+al.isSystemFontUsed = true;
+alb.setPosition(0, 0);
+autobtn.addChild(alb);
+autobtn.setPosition(180, 40);
+panel.addChild(autobtn);
+// 鱼竿等级显示 + 升级按钮
+var rodLv = cc.getRodLv();
+var rodInfo = new cc.Node("rodinfo");
+var ri = rodInfo.addComponent(cc.Label);
+ri.fontSize = 22;
+ri.string = "鱼竿Lv." + rodLv + "/10  (鱼" + cc.getRodCfg().fish + "% 垃圾" + cc.getRodCfg().trash + "% 宝箱" + cc.getRodCfg().chest + "%)";
+ri.color = cc.Color.YELLOW;
+ri.isSystemFontUsed = true;
+rodInfo.setPosition(180, -90);
+panel.addChild(rodInfo);
+var upbtn = new cc.Node("upgrade");
+upbtn.setContentSize(200, 55);
+var ub = upbtn.addComponent(cc.Graphics);
+ub.fillColor = new cc.Color(40, 80, 160);
+ub.rect(-100, -27, 200, 54);
+ub.fill();
+var ulb = new cc.Node("ulb");
+var ul = ulb.addComponent(cc.Label);
+ul.fontSize = 22;
+ul.string = "升级鱼竿(" + cc.getRodUpCost(rodLv) + "金)";
+ul.color = cc.Color.WHITE;
+ul.isSystemFontUsed = true;
+ulb.setPosition(0, 0);
+upbtn.addChild(ulb);
+upbtn.setPosition(180, -150);
+panel.addChild(upbtn);
+upbtn.on(cc.Node.EventType.TOUCH_END, function() {
+var r = cc.upgradeRod();
+if (0 == r) {
+cc.uiHelper.showTips("鱼竿升级成功!当前Lv." + cc.getRodLv());
+var ri2 = panel.getChildByName("rodinfo").getComponent(cc.Label);
+ri2.string = "鱼竿Lv." + cc.getRodLv() + "/10  (鱼" + cc.getRodCfg().fish + "% 垃圾" + cc.getRodCfg().trash + "% 宝箱" + cc.getRodCfg().chest + "%)";
+var ul2 = panel.getChildByName("upgrade").getChildByName("ulb").getComponent(cc.Label);
+ul2.string = "升级鱼竿(" + cc.getRodUpCost(cc.getRodLv()) + "金)";
+} else if (2 == r) cc.uiHelper.showTips("已达最高等级");
+else if (3 == r) cc.uiHelper.showTips("金币不足");
+});
+// 统计按钮(查看鱼/垃圾/宝箱/各鱼次数)
+var statbtn = new cc.Node("stat");
+statbtn.setContentSize(200, 55);
+var sb = statbtn.addComponent(cc.Graphics);
+sb.fillColor = new cc.Color(80, 60, 120);
+sb.rect(-100, -27, 200, 54);
+sb.fill();
+var slb2 = new cc.Node("slb2");
+var sl2 = slb2.addComponent(cc.Label);
+sl2.fontSize = 22;
+sl2.string = "本次统计";
+sl2.color = cc.Color.WHITE;
+sl2.isSystemFontUsed = true;
+slb2.setPosition(0, 0);
+statbtn.addChild(slb2);
+statbtn.setPosition(180, -210);
+panel.addChild(statbtn);
+statbtn.on(cc.Node.EventType.TOUCH_END, function() {
+var s = cc.playerData.fishStats || {};
+var fns = "";
+for (var si in s) fns += "鱼" + si + ":" + s[si] + "次 ";
+var st = cc.playerData._fishSession ? cc.playerData._fishSession : { fish: 0, trash: 0, chest: 0 };
+cc.uiHelper.showTips("本次: 鱼" + st.fish + " 垃圾" + st.trash + " 宝箱" + st.chest + "\n历史鱼次数:" + (fns || "暂无"));
+});
+// 关闭按钮
+var closebtn = new cc.Node("close");
+closebtn.setContentSize(200, 60);
+var cb = closebtn.addComponent(cc.Graphics);
+cb.fillColor = new cc.Color(120, 30, 30);
+cb.rect(-100, -30, 200, 60);
+cb.fill();
+var clb2 = new cc.Node("clb");
+var cl2 = clb2.addComponent(cc.Label);
+cl2.fontSize = 26;
+cl2.string = "关闭";
+cl2.color = cc.Color.WHITE;
+cl2.isSystemFontUsed = true;
+clb2.setPosition(0, 0);
+closebtn.addChild(clb2);
+closebtn.setPosition(180, -270);
+panel.addChild(closebtn);
+// 本次会话统计重置
+cc.playerData._fishSession = { fish: 0, trash: 0, chest: 0 };
+var host = cc.find("Canvas") || this.node;
+host.addChild(panel, 99999);
+panel.on(cc.Node.EventType.TOUCH_START, function(e) { e.stopPropagation(); });
+_this._fishPanel = panel;
+_this._fishData = { bar: bar, fish: fish, cur: cur, accum: accum, accumLabel: accum.getComponent(cc.Label), startbtn: startbtn, autobtn: autobtn, fishY: 0, curY: 0, accumV: 0, active: false, waiting: false, waitT: 0, dir: 1 };
+// 鱼移动/判定用 schedule 驱动(星露谷式: 抛竿→2s三结果→耐力判定)
+_this.fishTickCb = function(dt) {
+var d = _this._fishData;
+if (!d) return;
+if (d.waiting) {
+// 抛竿2s后出结果(鱼/垃圾/宝箱按鱼竿等级比例)
+d.waitT += dt;
+if (d.waitT >= 2) {
+d.waiting = !1;
+var cast = cc.rollCast();
+if (cast == 1) {
+// 垃圾
+_this._fishTrash();
+_this._resetFishBar();
+} else if (cast == 2) {
+// 宝箱
+_this._fishChest();
+_this._resetFishBar();
+} else {
+// 鱼: 开始判定
+var fid = cc.rollFish();
+var fs = cc.getFishById(fid);
+d.fishId = fid;
+d.fishSp = fs;
+d.active = !0;
+d.stamina = 100; // 耐力条 0-100
+d.needT = fs ? fs.needTime : 5; // 需在条内时间
+d.inBarT = 0;
+d.fishY = 0;
+d.curY = 0;
+d.dir = 1;
+d.patternT = 0;
+d.beh = (fs && fs.level) || "A";
+d.zone = cc.getRodCfg().zone;
+d.curSpd = cc.getRodCfg().curSpd;
+var sl2 = d.startbtn.getChildByName("slb").getComponent(cc.Label);
+sl2.string = "鱼上钩!按住跟随 (耐力:" + Math.floor(d.stamina) + ")";
+cc.uiHelper.showTips("鱼上钩了!按住屏幕跟随" + (fs ? fs.name : ""));
+}
+}
+return;
+}
+if (d.active) {
+// 鱼行为序列: A简单慢速, B中速, C变快, D忽快忽慢/摇摆
+d.patternT += dt;
+var spd = 60;
+if (d.beh == "A") spd = 55 + Math.sin(d.patternT * 2) * 15;
+else if (d.beh == "B") spd = 75 + Math.sin(d.patternT * 3) * 25;
+else if (d.beh == "C") spd = 95 + Math.sin(d.patternT * 4) * 40;
+else spd = 110 + Math.sin(d.patternT * 6) * 60; // D: 忽快忽慢
+if (Math.random() < 0.02 && d.beh == "D") d.dir *= -1; // D: 随机转向(摇摆)
+d.fishY += d.dir * spd * dt;
+var lim = (cc.getRodCfg().barH / 2) - 15;
+if (d.fishY > lim) { d.fishY = lim; d.dir = -1; }
+if (d.fishY < -lim) { d.fishY = -lim; d.dir = 1; }
+// 游标: 按住上升, 松开下降
+if (_this._fishHold) d.curY += d.curSpd * dt; else d.curY -= d.curSpd * dt;
+var clim = (cc.getRodCfg().barH / 2) - 30;
+if (d.curY > clim) d.curY = clim;
+if (d.curY < -clim) d.curY = -clim;
+// 耐力判定: 在条内慢增, 丢失快减
+var inBar = Math.abs(d.curY - d.fishY) < d.zone;
+if (inBar) { d.stamina += 30 * dt; d.inBarT += dt; } else d.stamina -= 40 * dt;
+if (d.stamina > 100) d.stamina = 100;
+// 捕获完成: 在条内时间达到该鱼所需
+if (d.inBarT >= d.needT) {
+d.active = false;
+_this._fishCatch(d.fishId);
+return;
+}
+// 耐力耗尽失败
+if (d.stamina <= 0) {
+d.active = false;
+cc.uiHelper.showTips("鱼跑掉了!");
+_this._resetFishBar();
+return;
+}
+d.fish.setPosition(0, d.fishY);
+d.cur.setPosition(0, d.curY);
+if (d.accumLabel) d.accumLabel.string = "耐力:" + Math.floor(d.stamina) + "% 进度:" + Math.floor(d.inBarT / d.needT * 100) + "%";
+var sl3 = d.startbtn.getChildByName("slb").getComponent(cc.Label);
+sl3.string = "跟随绿鱼 (耐力:" + Math.floor(d.stamina) + ")";
+}
+};
+_this.schedule(_this.fishTickCb, 0.03);
+// 抛竿按钮(互斥: 自动钓鱼开启时不能手动抛竿)
+startbtn.on(cc.Node.EventType.TOUCH_END, function() {
+if (_this._fishData.active || _this._fishData.waiting) return;
+if (cc.playerData.fishAuto) {
+cc.uiHelper.showTips("请先关闭挂机钓鱼再手动抛竿!");
+return;
+}
+_this._fishData.waiting = !0;
+_this._fishData.waitT = 0;
+var sl = startbtn.getChildByName("slb").getComponent(cc.Label);
+sl.string = "等待鱼儿上钩...";
+cc.uiHelper.showTips("已抛竿,等待鱼儿上钩...");
+});
+// 按住屏幕: 游标上升
+_this._fishHold = false;
+panel.on(cc.Node.EventType.TOUCH_START, function(e) { _this._fishHold = true; e.stopPropagation(); });
+panel.on(cc.Node.EventType.TOUCH_END, function(e) { _this._fishHold = false; e.stopPropagation(); });
+// 挂机开关(互斥: 开启时停止手动判定)
+autobtn.on(cc.Node.EventType.TOUCH_END, function() {
+if (!cc.playerData.fishAuto && (_this._fishData.active || _this._fishData.waiting)) {
+cc.uiHelper.showTips("请先完成当前抛竿再开启挂机!");
+return;
+}
+cc.playerData.fishAuto = !cc.playerData.fishAuto;
+cc.playerData.saveflag = !0;
+var a = autobtn.getChildByName("alb").getComponent(cc.Label);
+a.string = cc.playerData.fishAuto ? "挂机钓鱼:开" : "挂机钓鱼:关";
+cc.uiHelper.showTips(cc.playerData.fishAuto ? "挂机钓鱼已开启(每15秒自动钓)" : "挂机钓鱼已关闭");
+});
+// 关闭
+closebtn.on(cc.Node.EventType.TOUCH_END, function() {
+_this.unschedule(_this.fishTickCb);
+_this._fishPanel.destroy();
+_this._fishPanel = null;
+_this._fishData = null;
+});
+} catch (err) { cc.log("fish err:" + err); }
+},
+_resetFishBar: function() {
+if (this._fishData) {
+this._fishData.active = false;
+this._fishData.waiting = !1;
+this._fishData.accumV = 0;
+try {
+var sl = this._fishData.startbtn.getChildByName("slb").getComponent(cc.Label);
+sl.string = "抛竿";
+} catch (e) {}
+}
+},
+_showFishResult: function(fishId) {
+// 展示钓到的鱼几秒(用系统 tips, 带品质名)
+try {
+var fs = cc.getFishById(fishId);
+var nm = fs ? fs.name : ("鱼" + fishId);
+var qn = fs ? (cc.fishQulityName[fs.qulity] || "") : "";
+cc.uiHelper.showTips("钓到:" + qn + nm + "!  (难度" + (fs ? fs.level : "") + ")");
+var _t = this;
+setTimeout(function() { _t._resetFishBar(); }, 3000);
+} catch (e) {}
+},
+_fishCatch: function(fishId) {
+try {
+if (!fishId) fishId = cc.rollFish();
+cc.playerData.additembyid(fishId, 1, !0);
+cc.playerData.fishcount = (cc.playerData.fishcount || 0) + 1;
+cc.playerData.fishbook[fishId] = (cc.playerData.fishbook[fishId] || 0) + 1;
+// 记录该鱼钓次数(统计)
+cc.playerData.fishStats = cc.playerData.fishStats || {};
+cc.playerData.fishStats[fishId] = (cc.playerData.fishStats[fishId] || 0) + 1;
+// 本次会话统计
+if (cc.playerData._fishSession) cc.playerData._fishSession.fish++;
+cc.playerData.saveflag = !0;
+this._showFishResult(fishId);
+this._fishPanel && this._refreshFishTitle();
+} catch (err) { cc.log("fishcatch err:" + err); }
+},
+_fishTrash: function() {
+try {
+var tid = [ 20001, 20101, 20201 ][Math.floor(Math.random() * 3)];
+cc.playerData.additembyid(tid, 1, !0);
+cc.uiHelper.showTips("钓到垃圾:普通材料");
+if (cc.playerData._fishSession) cc.playerData._fishSession.trash++;
+cc.playerData.saveflag = !0;
+} catch (e) {}
+},
+_fishChest: function() {
+try {
+var cid = [ 30001, 30002, 30010 ][Math.floor(Math.random() * 3)];
+cc.playerData.additembyid(cid, 1, !0);
+cc.uiHelper.showTips("钓到宝箱!获得稀有材料");
+if (cc.playerData._fishSession) cc.playerData._fishSession.chest++;
+cc.playerData.saveflag = !0;
+} catch (e) {}
+},
+_refreshFishTitle: function() {
+try {
+if (this._fishPanel) {
+var t = this._fishPanel.getChildByName("title").getComponent(cc.Label);
+t.string = "钓鱼 (累计:" + cc.playerData.fishcount + "条)";
+}
+} catch (err) {}
+},
+createfishbook: function() {
+try {
+if (this._fishBookPanel) return;
+var _this = this;
+var panel = new cc.Node("fishbook");
+panel.setContentSize(620, 500);
+panel.setPosition(0, 0);
+var g = panel.addComponent(cc.Graphics);
+g.fillColor = new cc.Color(0, 0, 0, 235);
+g.rect(-310, -250, 620, 500);
+g.fill();
+var species = cc.fishSpecies || [];
+var ids = [];
+var nmap = {};
+for (var si = 0; si < species.length; si++) { ids.push(species[si].id); nmap[species[si].id] = species[si].name; }
+var title = new cc.Node("title");
+var tlb = title.addComponent(cc.Label);
+tlb.fontSize = 30;
+tlb.string = "鱼图鉴 (已钓:" + (Object.keys(cc.playerData.fishbook || {}).length) + "/" + ids.length + "种)";
+tlb.color = cc.Color.YELLOW;
+tlb.lineHeight = 38;
+title.setPosition(0, 210);
+panel.addChild(title);
+for (var i = 0; i < ids.length; i++) {
+(function(fid, ypos) {
+var row = new cc.Node("row" + fid);
+row.setContentSize(540, 50);
+var rg = row.addComponent(cc.Graphics);
+var got = cc.playerData.fishbook && cc.playerData.fishbook[fid];
+rg.fillColor = new cc.Color(30, 30, 40, 200);
+rg.rect(-270, -25, 540, 50);
+rg.fill();
+var lbn = new cc.Node("lb");
+var lb = lbn.addComponent(cc.Label);
+lb.fontSize = 22;
+lb.isSystemFontUsed = true;
+var sp = cc.getFishById(fid);
+// 用系统品质色: 已钓=鱼品质色, 未钓=灰
+var qcol = sp ? (cc.fishQulityColor[sp.qulity] || [255,255,255]) : [255,255,255];
+lb.color = got ? new cc.Color(qcol[0], qcol[1], qcol[2]) : cc.Color.GRAY;
+var qn2 = sp ? (cc.fishQulityName[sp.qulity] || "") : "";
+lb.string = got ? (qn2 + nmap[fid] + "  x" + cc.playerData.fishbook[fid]) : "???";
+lbn.setPosition(0, 0);
+row.addChild(lbn);
+row.setPosition(0, 175 - i * 54);
+panel.addChild(row);
+})(ids[i], i);
+}
+var closebtn = new cc.Node("close");
+closebtn.setContentSize(200, 60);
+var cb = closebtn.addComponent(cc.Graphics);
+cb.fillColor = new cc.Color(120, 30, 30);
+cb.rect(-100, -30, 200, 60);
+cb.fill();
+var clb3 = new cc.Node("clb");
+var cl3 = clb3.addComponent(cc.Label);
+cl3.fontSize = 26;
+cl3.string = "关闭";
+cl3.color = cc.Color.WHITE;
+cl3.isSystemFontUsed = true;
+clb3.setPosition(0, 0);
+closebtn.addChild(clb3);
+closebtn.setPosition(0, -220);
+panel.addChild(closebtn);
+closebtn.on(cc.Node.EventType.TOUCH_END, function() {
+_this._fishBookPanel.destroy();
+_this._fishBookPanel = null;
+});
+var host2 = cc.find("Canvas") || this.node;
+host2.addChild(panel, 99999);
+panel.on(cc.Node.EventType.TOUCH_START, function(e) { e.stopPropagation(); });
+_this._fishBookPanel = panel;
+} catch (err) { cc.log("fishbook err:" + err); }
 }
 });
 cc._RF.pop();
@@ -25688,7 +26688,30 @@ cc.hell = !1;
 cc.mode1w = !0;
 cc.battling = !0;
 cc.director.loadScene("game");
-} else 17 == e && cc.uimain.createpetbook();
+} else if (17 == e) cc.uimain.createpetbook(); else if (20 == e) {
+cc.rogue = !0;
+cc.rogueFloor = 1;
+cc.rogueRelics = [];
+cc.rogueBossAffix = 0;
+cc.abyssMode = !1;
+cc.wujin = !1;
+cc.hell = !1;
+cc.mode1w = !1;
+cc.stageid = 1;
+cc.battling = !0;
+cc.director.loadScene("game");
+} else if (21 == e) {
+cc.uimain.createRgoreShop();
+} else if (22 == e) cc.uimain.createfishing(); else if (23 == e) cc.uimain.createfishbook(); else if (18 == e) {
+cc.abyssMode = !0;
+cc.rogue = !1;
+cc.wujin = !1;
+cc.hell = !1;
+cc.mode1w = !1;
+cc.stageid = 1;
+cc.battling = !0;
+cc.director.loadScene("game");
+} else if (19 == e) cc.uimain.createshop(201);
 this.node.destroy();
 },
 update: function(t) {
@@ -25895,6 +26918,7 @@ for (e = 0; e < 5; e++) {
 s = cc.instantiate(this.pb_skill);
 this.nd_skilllist.addChild(s);
 }
+this.initEvolveBtn();
 cc.Notifier.emit("clickpet", t[0][0]);
 },
 refreshall: function(t) {
@@ -25917,6 +26941,7 @@ this.nd_zhuanshen.active = t.canzhuanshen();
 this.refreshstate(t);
 this.refreshskill(t);
 this.onshuxing();
+this.refreshEvolveBtn();
 },
 setcitiao: function(t, e) {
 for (var i = 0; i < e.length; i++) {
@@ -25997,6 +27022,58 @@ t.refreshall(t.petdata);
 t.nowlv.string = t.petdata.zhuanshen + "转lv." + t.petdata.lv;
 }
 });
+},
+onclickevolve: function() {
+var t = this;
+var ecost = t.petdata.getevolvecost();
+var estone = t.petdata.getevolvestoneneed();
+var ebonus = t.petdata.getevolvebonus();
+cc.uiHelper.messageBox("进化", "灵宠进化(" + t.petdata.evolve + "/" + t.petdata.evolvemax + ")\n消耗金币" + ecost + "+灵兽进化石" + estone + "个\n进化后全成长+" + ebonus + "(首领额外+" + ebonus + ")", function() {
+var r = t.petdata.doevolve();
+if (0 == r) {
+cc.uiHelper.showTips("进化成功!");
+t.refreshall(t.petdata);
+} else if (1 == r) cc.uiHelper.showTips("进化石不足");
+else if (2 == r) cc.uiHelper.showTips("金币不足");
+else if (3 == r) cc.uiHelper.showTips("已达最大进化");
+});
+},
+initEvolveBtn: function() {
+try {
+if (this._evolveBtn) return;
+var _this = this;
+var node = new cc.Node("btn_evolve");
+node.setContentSize(300, 70);
+node.setPosition(0, 200);
+var g = node.addComponent(cc.Graphics);
+g.fillColor = new cc.Color(200, 50, 50);
+g.rect(-150, -35, 300, 70);
+g.fill();
+g.strokeColor = new cc.Color(255, 215, 0);
+g.lineWidth = 4;
+g.stroke();
+var lbn = new cc.Node("lb");
+var lb = lbn.addComponent(cc.Label);
+lb.fontSize = 32;
+lb.string = "灵宠进化 [上限10] 当前0";
+lb.isSystemFontUsed = true;
+lb.lineHeight = 40;
+lb.color = cc.Color.WHITE;
+lbn.setPosition(0, 0);
+node.addChild(lbn);
+this._evolveBtn = node;
+node.on(cc.Node.EventType.TOUCH_END, function() {
+_this.onclickevolve();
+});
+this.node.addChild(node, 9999);
+} catch (err) { cc.log("evolvebtn err:" + err); }
+},
+refreshEvolveBtn: function() {
+try {
+if (!this._evolveBtn) return;
+var lb = this._evolveBtn.getChildByName("lb").getComponent(cc.Label);
+lb.string = "灵宠进化 [上限" + this.petdata.evolvemax + "] 当前" + this.petdata.evolve;
+} catch (err) {}
 },
 onclickfsall: function() {
 var t = this;
@@ -26266,10 +27343,11 @@ uishop: [ function(t, e) {
 "use strict";
 cc._RF.push(e, "3413crUmFRONrngGSBhpcb7", "uishop");
 var i = {
-1: [ 30001, [ 30001, 10 ], 10001, 10101, 10201, 20001, 20101, 20201, 20301, 20401 ],
+1: [ 30001, [ 30001, 10 ], 10001, 10101, 10201, 20001, 20101, 20201, 20301, 20401, [ 30010, 100, 5e5 ] ],
 2: [ 38001, 38002, 38003, [ 38001, 10 ], [ 38002, 10 ], [ 38003, 10 ] ],
 3: [ 20601, 20602, 20603, 20604, 20605, 20606 ],
-101: [ [ 30006, 1, 800 ], [ 31024, 1, 2e3 ], [ 31025, 1, 2e3 ], [ 31026, 1, 2e3 ], [ 10021, 1, 500 ], [ 10217, 1, 500 ], [ 10116, 1, 500 ] ]
+101: [ [ 30006, 1, 800 ], [ 31024, 1, 2e3 ], [ 31025, 1, 2e3 ], [ 31026, 1, 2e3 ], [ 10021, 1, 500 ], [ 10217, 1, 500 ], [ 10116, 1, 500 ] ],
+201: [ [ 30001, 1, 100 ], [ 30002, 1, 80 ], [ 30003, 1, 80 ], [ 30004, 1, 80 ], [ 20601, 1, 300 ], [ 20606, 1, 300 ], [ 10001, 1, 50 ], [ 10101, 1, 50 ], [ 10201, 1, 50 ], [ 20001, 1, 200 ], [ 20101, 1, 200 ], [ 20201, 1, 200 ] ]
 };
 cc.Class({
 extends: cc.Component,
@@ -26281,6 +27359,7 @@ type: cc.Node
 },
 initdata: function(t) {
 t > 100 && (this.ygmode = !0);
+this.currency = (t == 201) ? 30020 : 30005;
 var e = i[t];
 this.tbv = this.tableview.getComponent("tableView");
 this.tbv.initTableView(e.length, {
@@ -27250,3 +28329,264 @@ cc._RF.pop();
 SDKManage: "SDKManage"
 } ]
 }, {}, [ "cpa", "wxshow", "DonotDestroy", "avatar", "pbxingxiang", "uixingxiang", "cellys", "avatarcfg", "buffcfg", "bulletcfg", "dropcfg", "duihuancfg", "effanicfg", "enumcfg", "fumocfg", "itemcfg", "lootcfg", "monstercfg", "npccfg", "peifangcfg", "petbookcfg", "setcfg", "skillcfg", "skincfg", "stagecfg", "talentcfg", "debugbox", "bulletdisplay", "dmglb", "frameani", "gameManager", "gameUI", "gameloot", "gamenewbie", "moveprefab", "pbautotile", "pbbufficon", "pbdrop", "pbwarning", "playerctrl", "tileset", "weapondisplay", "followweapon", "gameres", "Joystick", "JoystickBG", "JoystickCommon", "buffobj", "bulletobj", "dragonobj", "dropobj", "gameai", "gamelogic", "gamevaule", "lootobj", "npcobj", "skillobj", "battlestates", "statemachine", "gameConfig", "luping", "atlasmgr", "charobj", "equipobj", "itemobj", "petobj", "talentobj", "playerData", "sceneguaji", "addbanner", "addchaping", "delayshow", "hideyuansheng", "hutui9gong", "hutuibanner", "tianjiazhuomian", "ysad", "SDKManage", "sdkanzhuo", "sdkhuawei", "sdkoppo", "sdkvivo", "sdkwx", "sdkzj", "syshow", "tips", "CCActionAdd", "Notifier", "Utils", "httpcli", "httpclient", "notification", "signals", "storage", "urlbuilder", "perlinnoise", "quadtree", "tableView", "viewCell", "testmove", "wxVoice", "UILogin", "UIPetChose", "cellbag", "cellequipskill", "cellfm", "cellhc", "celllearnskill", "cellpet", "cellpetbook", "cellshop", "cellstage", "messagebox", "pbjiadian", "skillpet", "uiMain", "uiRole", "uiadhouse", "uibag", "uibank", "uiduihuan", "uiequipskill", "uifm", "uihc", "uiitemdetail", "uijiadian", "uilearnskill", "uinormalitem", "uinpc", "uipet", "uipetbook", "uiplayerctrl", "uisetting", "uishop", "uiskillicon", "uistage", "uistart", "uitiejiang", "uiHelper", "uiys", "uizuobi", "ysxieyi", "test2", "testview" ]);
+cc.showRogueRelicPick = function() {
+try {
+if (cc._rgorePanel) return;
+var _this = cc.showRogueRelicPick;
+var isEvent = ((cc.rogueFloor || 1) - 1) > 0 && ((cc.rogueFloor || 1) - 1) % 5 == 0;
+var panel = new cc.Node("rgore_panel");
+panel.setContentSize(720, 500);
+panel.setPosition(0, 0);
+var pg = panel.addComponent(cc.Graphics);
+pg.fillColor = new cc.Color(0, 0, 0, 235);
+pg.rect(-340, -240, 680, 480);
+pg.fill();
+var title = new cc.Node("title");
+var tlb = title.addComponent(cc.Label);
+tlb.fontSize = 30;
+tlb.string = isEvent ? "随机事件! (第" + (cc.rogueFloor - 1) + "层)" : "选择肉鸽遗物 (第" + (cc.rogueFloor - 1) + "层通关)";
+tlb.color = cc.Color.YELLOW;
+tlb.lineHeight = 38;
+title.setPosition(0, 200);
+panel.addChild(title);
+if (isEvent) {
+var evPool = [
+{ name: "跃迁之门", des: "跳关2层,获得结晶+100", type: 0 },
+{ name: "生命之泉", des: "恢复全部生命", type: 1 },
+{ name: "神秘宝箱", des: "获得一件随机装备", type: 2 },
+{ name: "暗黑祭坛", des: "boss增强但奖励+200%", type: 3 },
+{ name: "战神祝福", des: "攻击+50%", type: 4 },
+{ name: "生命图腾", des: "生命+100%", type: 5 },
+{ name: "财富喷泉", des: "金币+200000 结晶+200", type: 6 }
+];
+// 随机抽3个不同事件选项
+var evChoices = [];
+var pool2 = [ 0, 1, 2, 3, 4, 5, 6 ];
+for (var ei2 = 0; ei2 < 3; ei2++) { var pi = Math.floor(Math.random() * pool2.length); evChoices.push(pool2.splice(pi, 1)[0]); }
+for (var ek = 0; ek < 3; ek++) {
+(function(evt, xpos) {
+var btn = new cc.Node("event" + evt);
+btn.setContentSize(220, 120);
+var g = btn.addComponent(cc.Graphics);
+g.fillColor = new cc.Color(42, 42, 74, 255);
+g.rect(-110, -60, 220, 120);
+g.fill();
+g.strokeColor = new cc.Color(90, 200, 250);
+g.lineWidth = 4;
+g.stroke();
+var lbn = new cc.Node("lb");
+var lb = lbn.addComponent(cc.Label);
+lb.fontSize = 20;
+lb.isSystemFontUsed = true;
+lb.lineHeight = 26;
+lb.color = new cc.Color(90, 200, 250);
+lb.isBold = true;
+lb.overflow = cc.Label.Overflow.SHRINK;
+lbn.setContentSize(200, 100);
+lb.string = "【" + evPool[evt].name + "】\n" + evPool[evt].des;
+lbn.setPosition(0, 0);
+btn.addChild(lbn);
+btn.setPosition(xpos, -30);
+btn.on(cc.Node.EventType.TOUCH_END, function() {
+var p = cc.battlelogic && cc.battlelogic.player;
+if (0 == evt) { cc.playerData.changeRgore(100); cc.rogueFloor = (cc.rogueFloor || 1) + 2; cc.rogueSkip = !0; }
+else if (1 == evt) { if (p) { p.hp = p.maxhp; if (p.gamevaule) p.gamevaule.addpv(8, 0); p.shuxingrefresh && p.shuxingrefresh(); p.hp = p.maxhp; } }
+else if (2 == evt) { cc.playerData.additembyid([10001,10101,10201,20001,20101,20201,20601,20606][Math.floor(Math.random()*8)], 1, !0); }
+else if (3 == evt) { cc.rogueCurse = !0; cc.playerData.changeRgore(200); }
+else if (4 == evt) { if (p) { cc.rogueRelics = cc.rogueRelics || []; cc.rogueRelics.push({ id: 5001, q: 2, st: 1 }); cc.relicApply(p); } }
+else if (5 == evt) { if (p) { cc.rogueRelics = cc.rogueRelics || []; cc.rogueRelics.push({ id: 5004, q: 2, st: 1 }); cc.relicApply(p); } }
+else if (6 == evt) { cc.playerData.changegold(2e5); cc.playerData.changeRgore(200); }
+cc.uiHelper.showTips("事件完成");
+cc._rgorePanel.destroy(); cc._rgorePanel = null;
+setTimeout(function() { cc.battling = !0; cc.director.loadScene("game"); }, 400);
+});
+panel.addChild(btn);
+})(evChoices[ek], (ek - 1) * 210);
+}
+cc._rgorePanel = panel;
+var canv = cc.find("Canvas") || cc.director.getScene();
+if (canv) canv.addChild(panel, 99999);
+panel.setPosition(0, 0);
+return;
+}
+var pool = [ 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010, 5011, 5012, 5013, 5014 ];
+var qName = [ "普通", "稀有", "史诗", "传说" ];
+var qColor = [ [255,255,255], [61,139,255], [184,77,255], [255,215,0] ];
+var qMult = [ 1, 2, 3, 5 ];
+for (var k = 0; k < 3; k++) {
+var pick = pool[Math.floor(Math.random() * pool.length)];
+var idx = pool.indexOf(pick);
+pool.splice(idx, 1);
+var rq = Math.floor(Math.random() * 4);
+(function(bid, q, xpos) {
+var btn = new cc.Node("relic" + bid + "_" + q);
+var g = btn.addComponent(cc.Graphics);
+g.fillColor = new cc.Color(42, 42, 74, 255);
+g.rect(-110, -55, 220, 110);
+g.fill();
+g.strokeColor = new cc.Color(qColor[q][0], qColor[q][1], qColor[q][2]);
+g.lineWidth = 4;
+g.stroke();
+var lbn = new cc.Node("lb");
+var lb = lbn.addComponent(cc.Label);
+lb.fontSize = 22;
+lb.isSystemFontUsed = true;
+lb.lineHeight = 28;
+lb.color = new cc.Color(qColor[q][0], qColor[q][1], qColor[q][2]);
+lb.isBold = true;
+lb.overflow = cc.Label.Overflow.SHRINK;
+lbn.setContentSize(200, 90);
+var base = cc.relicBase(bid);
+var strength = qMult[q];
+lb.string = "【" + qName[q] + "】" + base.name + "\n" + base.des.replace("#", strength);
+lbn.setPosition(0, 0);
+btn.addChild(lbn);
+btn.setContentSize(220, 110);
+btn.setPosition(xpos, -30);
+btn.on(cc.Node.EventType.TOUCH_END, function() {
+try {
+cc.rogueRelics = cc.rogueRelics || [];
+cc.rogueRelics.push({ id: bid, q: q, st: strength });
+var _p = cc.battlelogic && cc.battlelogic.player;
+if (_p) cc.relicApply(_p);
+cc.uiHelper.showTips("获得遗物:" + qName[q] + base.name);
+} catch (her) { cc.log("relic btn err:" + her); }
+try {
+if (cc._rgorePanel) { cc._rgorePanel.destroy(); cc._rgorePanel = null; }
+} catch (hde) {}
+setTimeout(function() {
+cc.battling = !0;
+cc.director.loadScene("game");
+}, 400);
+});
+panel.addChild(btn);
+})(pick, rq, (k - 1) * 210);
+}
+cc._rgorePanel = panel;
+var canv = cc.find("Canvas") || cc.director.getScene();
+if (canv) canv.addChild(panel, 99999);
+panel.setPosition(0, 0);
+panel.setContentSize(720, 1280);
+panel.on(cc.Node.EventType.TOUCH_START, function(e) { e.stopPropagation(); });
+panel.on(cc.Node.EventType.TOUCH_MOVE, function(e) { e.stopPropagation(); });
+} catch (err) { cc.log("rogueRelicPick err:" + err); }
+};
+cc.relicBase = function(bid) {
+var M = {
+5001: { name: "战意", des: "攻击+#%", pv: 109 }, 5002: { name: "猎杀", des: "暴击+#%", pv: 118 },
+5003: { name: "嗜血", des: "吸血+#%", pv: 119 }, 5004: { name: "巨盾", des: "生命+#%", pv: 108 },
+5005: { name: "疾风", des: "攻速+#%", pv: 117 }, 5006: { name: "穿甲", des: "爆伤+#%", pv: 121 },
+5007: { name: "狂战", des: "攻击+#", pv: 9 }, 5008: { name: "坚韧", des: "防御+#%", pv: 113 },
+5009: { name: "探宝", des: "爆率+#", pv: 22 }, 5010: { name: "荆棘", des: "终伤+#%", pv: 109 },
+5011: { name: "铁壁", des: "免伤+#%", pv: 113 }, 5012: { name: "剧毒", des: "攻击+#", pv: 9 },
+5013: { name: "疾影", des: "闪避+#", pv: 16 }, 5014: { name: "再生", des: "生命+#", pv: 8 }
+};
+return M[bid] || { name: "遗物", des: "", pv: 109 };
+};
+cc.relicBaseVal = { 5001: 30, 5002: 15, 5003: 20, 5004: 50, 5005: 20, 5006: 50, 5007: 50, 5008: 30, 5009: 10, 5010: 30, 5011: 30, 5012: 40, 5013: 20, 5014: 30 };
+cc.relicApply = function(player) {
+try {
+if (!player) return;
+cc.rogueRelics = cc.rogueRelics || [];
+var pv = {};
+var ids = [];
+for (var i = 0; i < cc.rogueRelics.length; i++) {
+var r = cc.rogueRelics[i];
+ids.push(r.id);
+var base = cc.relicBase(r.id);
+var val = Math.floor((cc.relicBaseVal[r.id] || 30) * (r.st || 1));
+pv[base.pv] = (pv[base.pv] || 0) + val;
+}
+// 遗物联动(Combo): 成套触发额外加成
+if (ids.indexOf(5001) >= 0 && ids.indexOf(5010) >= 0) pv[109] = (pv[109] || 0) + 20; // 战意+荆棘=攻击流派+20%攻
+if (ids.indexOf(5002) >= 0 && ids.indexOf(5006) >= 0) pv[21] = (pv[21] || 0) + 15; // 猎杀+穿甲=暴击流派+15爆伤
+if (ids.indexOf(5003) >= 0 && ids.indexOf(5014) >= 0) { pv[8] = (pv[8] || 0) + 500; pv[19] = (pv[19] || 0) + 10; } // 嗜血+再生=吸血流派
+if (ids.indexOf(5007) >= 0 && ids.indexOf(5005) >= 0) pv[109] = (pv[109] || 0) + 10; // 狂战+疾风
+if (ids.indexOf(5009) >= 0 && ids.indexOf(5008) >= 0) pv[13] = (pv[13] || 0) + 30; // 探宝+坚韧
+if (cc.rogueRelics.length >= 5) pv[109] = (pv[109] || 0) + 15; // 收集5个遗物=传说构筑+15%攻
+if (player.gamevaule) {
+for (var k in pv) player.gamevaule.addpv(parseInt(k), pv[k]);
+player.shuxingrefresh && player.shuxingrefresh();
+}
+} catch (err) { cc.log("relicApply err:" + err); }
+};
+// ===== 钓鱼系统核心数据 =====
+// 鱼竿等级配置: 每级影响 鱼/垃圾/宝箱比例, 条长, 游标速度, 鱼难度条大小
+cc.rodCfg = [
+{ fish: 85, trash: 10, chest: 5, barH: 260, curSpd: 120, zone: 55 },
+{ fish: 86, trash: 8, chest: 6, barH: 280, curSpd: 130, zone: 52 },
+{ fish: 87, trash: 6, chest: 7, barH: 300, curSpd: 140, zone: 49 },
+{ fish: 88, trash: 4, chest: 8, barH: 320, curSpd: 150, zone: 46 },
+{ fish: 89, trash: 2, chest: 9, barH: 340, curSpd: 160, zone: 43 },
+{ fish: 90, trash: 0, chest: 10, barH: 360, curSpd: 170, zone: 40 },
+{ fish: 90, trash: 0, chest: 10, barH: 380, curSpd: 180, zone: 38 },
+{ fish: 90, trash: 0, chest: 10, barH: 400, curSpd: 190, zone: 36 },
+{ fish: 90, trash: 0, chest: 10, barH: 420, curSpd: 200, zone: 34 },
+{ fish: 90, trash: 0, chest: 10, barH: 440, curSpd: 210, zone: 32 }
+];
+// 鱼种数据(星露谷风格): A简单~D活跃
+// level: A简单(全程慢), B普通(中速), C较难(变快), D活跃(忽快忽慢/摇摆)
+// needTime: 鱼需在条内时间(秒, 越难越久), 影响耐力消耗
+// 品质色(对齐系统 enumcfg.qulitycolor): 1白 2绿 3蓝 4紫 5橙 6红 7粉
+cc.fishSpecies = [
+{ id: 39001, name: "鲷鱼", qulity: 1, level: "A", color: [255,255,255], needTime: 3 },
+{ id: 39002, name: "沙丁鱼", qulity: 1, level: "A", color: [255,255,255], needTime: 3.2 },
+{ id: 39003, name: "鲈鱼", qulity: 2, level: "A", color: [0,255,0], needTime: 3.5 },
+{ id: 39004, name: "鲤鱼", qulity: 1, level: "A", color: [255,255,255], needTime: 3 },
+{ id: 39005, name: "河鲈", qulity: 2, level: "B", color: [0,255,0], needTime: 4 },
+{ id: 39006, name: "鲶鱼", qulity: 3, level: "B", color: [0,100,255], needTime: 4.5 },
+{ id: 39007, name: "大嘴鲈鱼", qulity: 3, level: "B", color: [0,100,255], needTime: 5 },
+{ id: 39008, name: "红鲑", qulity: 3, level: "B", color: [0,100,255], needTime: 4.8 },
+{ id: 39009, name: "鳗鱼", qulity: 4, level: "C", color: [155,0,255], needTime: 6 },
+{ id: 39010, name: "章鱼", qulity: 4, level: "C", color: [155,0,255], needTime: 6.5 },
+{ id: 39011, name: "鱿鱼", qulity: 4, level: "C", color: [155,0,255], needTime: 6 },
+{ id: 39012, name: "鲨鱼", qulity: 5, level: "C", color: [255,155,0], needTime: 7 },
+{ id: 39013, name: "海豚", qulity: 5, level: "D", color: [255,155,0], needTime: 8 },
+{ id: 39014, name: "鲟鱼", qulity: 5, level: "D", color: [255,155,0], needTime: 8.5 },
+{ id: 39015, name: "旗鱼", qulity: 6, level: "D", color: [255,0,80], needTime: 9 },
+{ id: 39016, name: "传说之鱼", qulity: 7, level: "D", color: [255,60,220], needTime: 12 },
+{ id: 39017, name: "幽灵鱼", qulity: 6, level: "D", color: [255,0,80], needTime: 10 },
+{ id: 39018, name: "龙王鱼", qulity: 7, level: "D", color: [255,60,220], needTime: 15 }
+];
+// 品质名(对齐系统 qulityname)
+cc.fishQulityName = [ "", "普通", "优秀", "精良", "罕见", "传说", "远古", "太古" ];
+cc.fishQulityColor = [ null, [255,255,255], [0,255,0], [0,100,255], [155,0,255], [255,155,0], [255,0,80], [255,60,220] ];
+// 鱼竿等级(存档 fishRodLv, 1~10)
+cc.getRodLv = function() { return cc.playerData ? (cc.playerData.fishRodLv || 1) : 1; };
+cc.getRodCfg = function() { return cc.rodCfg[Math.min(9, (cc.getRodLv() - 1))]; };
+cc.getRodUpCost = function(lv) { return 1000 * lv * lv; };
+cc.upgradeRod = function() {
+if (!cc.playerData) return 1;
+var lv = cc.playerData.fishRodLv || 1;
+if (lv >= 10) return 2;
+var cost = cc.getRodUpCost(lv);
+if (cc.playerData.gold < cost) return 3;
+cc.playerData.gold -= cost;
+cc.playerData.fishRodLv = lv + 1;
+cc.playerData.saveflag = !0;
+return 0;
+};
+// 抛竿结果: 0鱼 1垃圾 2宝箱 (按鱼竿等级比例)
+cc.rollCast = function() {
+var c = cc.getRodCfg();
+var r = Math.random() * 100;
+if (r < c.fish) return 0;
+if (r < c.fish + c.trash) return 1;
+return 2;
+};
+// 按鱼竿等级+难度权重随机一条鱼
+cc.rollFish = function() {
+var r = Math.random();
+var pool;
+if (r < 0.25) pool = [ 39001, 39002, 39004 ]; // A简单 25%
+else if (r < 0.5) pool = [ 39003, 39005, 39006 ]; // A/B 25%
+else if (r < 0.72) pool = [ 39006, 39007, 39008, 39009 ]; // B 22%
+else if (r < 0.9) pool = [ 39009, 39010, 39011, 39012 ]; // C 18%
+else if (r < 0.97) pool = [ 39013, 39014, 39015, 39017 ]; // D 7%
+else pool = [ 39016, 39018 ]; // 传说 3%
+return pool[Math.floor(Math.random() * pool.length)];
+};
+cc.getFishById = function(id) {
+for (var i = 0; i < cc.fishSpecies.length; i++) if (cc.fishSpecies[i].id === id) return cc.fishSpecies[i];
+return null;
+};
