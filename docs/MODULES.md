@@ -96,6 +96,8 @@
 | 加成生效 | `getplayerbsproperty` 合并（fishbook之后、肉鸽判断之前 → 全局生效含肉鸽新局基础） |
 | 存档 | `campLv`(默认1) / `campFac{}`(默认空) |
 | UI | `createCamp()`：标题+营地升级按钮+6设施行(名称/等级/效果/升级按钮)+返回按钮，升级后重建面板刷新 |
+| 挂机产出 | `cc.getCampYield()`：金/秒=Σ设施级×系数(pet10/forge15/pond8/train12/store10/altar20)，无设施=0；进入main首帧结算离线收益(dt上限8h)`changegold`+showTips；在线每60s心跳写`campLastTime` |
+| 存档补 | 新增 `campLastTime`(时间戳,默认0)，init/savedata/loaddata 三处 |
 
 ---
 

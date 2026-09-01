@@ -51,7 +51,7 @@ cc._spMake=function(){
         cc._spNode=n;
     }catch(e){}
 };
-setInterval(function(){cc._spMake();try{if(cc.abyssMode){if(void 0===cc.abyssTimeLeft)cc.abyssTimeLeft=30;if(cc.abyssTimeLeft>0)cc.abyssTimeLeft--;if(cc.abyssTimeLeft<=0){cc.abyssFail();return;}cc._abyssTimerMake();}else if(cc._abyssTimerNode){cc._abyssTimerNode.isValid&&cc._abyssTimerNode.destroy();cc._abyssTimerNode=null;}}catch(e){}},1000);
+setInterval(function(){cc._spMake();try{if(cc.abyssMode){if(void 0===cc.abyssTimeLeft)cc.abyssTimeLeft=30;if(cc.abyssTimeLeft>0)cc.abyssTimeLeft--;if(cc.abyssTimeLeft<=0){cc.abyssFail();return;}cc._abyssTimerMake();}else if(cc._abyssTimerNode){cc._abyssTimerNode.isValid&&cc._abyssTimerNode.destroy();cc._abyssTimerNode=null;}}catch(e){}try{if(cc.playerData){cc._campT=(cc._campT||0)+1;if(cc._campT>=60){cc._campT=0;cc.playerData.campLastTime=Date.now();cc.playerData.saveflag=!0;}if(!cc._campDone){var sc=cc.director.getScene();if(sc&&sc.name==="main"){var nt=Date.now();var lst=cc.playerData.campLastTime||0;var dt=nt-lst;var cap=Math.min(dt,8*3600*1000);if(cap>60000){var y=cc.getCampYield?cc.getCampYield():0;var gn=Math.floor(y*cap/1000);if(gn>0){cc.playerData.changegold(gn);cc.uiHelper.showTips("营地离线产出 +"+gn+"金 ("+(cap/3600000).toFixed(1)+"h)");}}cc._campDone=!0;}}}}catch(e){}},1000);
 window.__require = function t(e, i, s) {
 function n(o, c) {
 if (!i[o]) {
@@ -17862,6 +17862,7 @@ this.abyssfloor = 1;
 this.abysscoin = 0;
 this.campLv = 1;
 this.campFac = {};
+this.campLastTime = 0;
 };
 this.hasgetcode = function(t) {
 for (var e = !1, i = 0; i < this.libaoarr.length; i++) if (this.libaoarr[i] == t) {
@@ -18150,7 +18151,8 @@ fishStats: this.fishStats,
 abyssfloor: this.abyssfloor,
 abysscoin: this.abysscoin,
 campLv: this.campLv,
-campFac: this.campFac
+campFac: this.campFac,
+campLastTime: this.campLastTime
 };
 this.battlepet && (t.battlepet = this.battlepet.uuid);
 t.itembag = [];
@@ -18224,6 +18226,7 @@ this.abyssfloor = n.abyssfloor || 1;
 this.abysscoin = n.abysscoin || 0;
 this.campLv = n.campLv || 1;
 this.campFac = n.campFac || {};
+this.campLastTime = n.campLastTime || 0;
 this.libaoarr || (this.libaoarr = []);
 n.stagesy && (this.stagesy = n.stagesy);
 n.rgoreCrystal && (this.rgoreCrystal = n.rgoreCrystal);
@@ -25428,6 +25431,15 @@ row.setPosition(0, ypos);
 panel.addChild(row);
 })(keys[i], 170 - i * 84);
 }
+// 挂机产出速率显示
+var ylb = new cc.Node("yield");
+var yl = ylb.addComponent(cc.Label);
+yl.fontSize = 22;
+yl.isSystemFontUsed = !0;
+yl.color = cc.Color.GREEN;
+yl.string = "挂机产出: " + (cc.getCampYield ? cc.getCampYield() : 0) + " 金/秒 (离线也计,上限8h)";
+ylb.setPosition(0, 195);
+panel.addChild(ylb);
 // 关闭按钮
 var close = new cc.Node("close");
 close.setContentSize(200, 56);
@@ -28790,4 +28802,11 @@ if (f.train) prop.push([ 9, f.train * 20 ]);
 if (f.store) prop.push([ 13, f.store * 10 ]);
 if (f.altar) { prop.push([ 22, f.altar * 5 ]); prop.push([ 21, f.altar * 5 ]); }
 return prop;
+};
+// 营地挂机产出(金币/秒)：仅来自已建设施，无设施则不产(避免白送)
+cc.getCampYield = function() {
+if (!cc.playerData) return 0;
+var f = cc.playerData.campFac || {};
+var g = (f.pet || 0) * 10 + (f.forge || 0) * 15 + (f.pond || 0) * 8 + (f.train || 0) * 12 + (f.store || 0) * 10 + (f.altar || 0) * 20;
+return Math.max(0, g);
 };
