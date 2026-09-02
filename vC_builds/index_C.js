@@ -1,35 +1,6 @@
 
-cc._spArr=[1,3,5,10,15,20,30,50,100];cc._spIdx=0;cc._spNode=null;
-cc._spApply=function(){if(cc.kSpeed&&cc._spArr&&cc._spIdx!==undefined)cc.kSpeed(cc._spArr[cc._spIdx]);cc.kDebuff&&cc.kDebuff(1);};
-cc._abyssTimerNode=null;
-cc.abyssFail=function(){
-  if(cc._abyssFailed)return;
-  cc._abyssFailed=!0;
-  cc.abyssMode=!1;
-  cc.playerData.abyssfloor=1;
-  cc.playerData.saveflag=!0;
-  try{cc._abyssTimerNode&&cc._abyssTimerNode.isValid&&cc._abyssTimerNode.destroy();}catch(e){}
-  cc._abyssTimerNode=null;
-  cc.uiHelper&&cc.uiHelper.showTips("深渊挑战超时!重置至第1层");
-  cc.director.loadScene("main");
-};
-cc._abyssTimerMake=function(){
-  try{
-    var p=cc.find("Canvas");if(!p)return;
-    if(cc._abyssTimerNode&&cc._abyssTimerNode.isValid){
-      cc._abyssTimerNode.getComponent(cc.Label).string="深渊 "+(cc.abyssTimeLeft||0)+"s";
-      return;
-    }
-    var sz=cc.view.getVisibleSize();
-    var n=new cc.Node("AbyssTimer");
-    p.addChild(n,999998);
-    n.setPosition(cc.v2(sz.width/2,sz.height/2-90));
-    var lb=n.addComponent(cc.Label);
-    lb.string="深渊 "+(cc.abyssTimeLeft||0)+"s";
-    lb.fontSize=34;lb.lineHeight=42;lb.color=cc.color(255,210,0,255);
-    cc._abyssTimerNode=n;
-  }catch(e){}
-};
+cc._spArr=[1,5,20,50,100];cc._spIdx=0;cc._spNode=null;
+cc._spApply=function(){if(cc.kSpeed&&cc._spArr&&cc._spIdx!==undefined)cc.kSpeed(cc._spArr[cc._spIdx]);};
 cc._spMake=function(){
     try{
         cc._spApply();
@@ -51,7 +22,7 @@ cc._spMake=function(){
         cc._spNode=n;
     }catch(e){}
 };
-setInterval(function(){cc._spMake();try{if(cc.abyssMode){if(void 0===cc.abyssTimeLeft)cc.abyssTimeLeft=30;if(cc.abyssTimeLeft>0)cc.abyssTimeLeft--;if(cc.abyssTimeLeft<=0){cc.abyssFail();return;}cc._abyssTimerMake();}else if(cc._abyssTimerNode){cc._abyssTimerNode.isValid&&cc._abyssTimerNode.destroy();cc._abyssTimerNode=null;}}catch(e){}try{if(cc.playerData){cc._campT=(cc._campT||0)+1;if(cc._campT>=60){cc._campT=0;cc.playerData.campLastTime=Date.now();cc.playerData.saveflag=!0;}if(!cc._campDone){var sc=cc.director.getScene();if(sc&&sc.name==="main"){var nt=Date.now();var lst=cc.playerData.campLastTime||0;var dt=nt-lst;var cap=Math.min(dt,8*3600*1000);if(cap>60000){var y=cc.getCampYield?cc.getCampYield():0;var gn=Math.floor(y*cap/1000);if(gn>0){cc.playerData.changegold(gn);cc.uiHelper.showTips("营地离线产出 +"+gn+"金 ("+(cap/3600000).toFixed(1)+"h)");}}cc._campDone=!0;}}}}catch(e){}},1000);
+setInterval(function(){cc._spMake();},1000);
 window.__require = function t(e, i, s) {
 function n(o, c) {
 if (!i[o]) {
@@ -792,12 +763,10 @@ Utils: [ function(t, e) {
 cc._RF.push(e, "daefdxxdapI0KzTlk5MfR+g", "Utils");
 var i = 0, s = 0, n = 0, a = 0, o = 0, c = 0, r = 0, l = 0, h = 0, p = 0, d = 0, u = 0, f = 0, g = 0, y = [ new cc.Color(240, 255, 255), new cc.Color(220, 255, 255), new cc.Color(200, 255, 255), new cc.Color(180, 255, 255), new cc.Color(160, 255, 255), new cc.Color(140, 255, 255), new cc.Color(120, 255, 255), new cc.Color(20, 255, 255) ], m = t("gameConfig").itemConfig, b = t("monstercfg");
 cc.director._kSpeed = 1;
-cc.director._kBuff = 1;
-cc.kDebuff = function(t) { cc.director._kBuff = t; };
 var v = cc.Director.prototype.calculateDeltaTime;
 cc.director.calculateDeltaTime = function(t) {
 v.call(this, t);
-this._deltaTime *= this._kSpeed * this._kBuff;
+this._deltaTime *= this._kSpeed;
 };
 cc.kSpeed = function(t) {
 cc.director._kSpeed = t;
@@ -2200,7 +2169,7 @@ this.dir.y = this.target.dir.y;
 }
 if (this.cfg.timescale) {
 this.target.timescale = 1 / this.cfg.timescale;
-cc.kDebuff(this.cfg.timescale);
+cc.kSpeed(this.cfg.timescale);
 }
 this.khp && (this.target.fanshangkill += this.khp);
 this.cfg.heal && this.target.heal(this.target.matk * this.cfg.heal / 100 * this.target.healdmg);
@@ -2268,7 +2237,7 @@ this.target.flagdead2 = !0;
 this.cfg.removebullet && cc.battlelogic.createbulletsground(this.skill, [ [ this.cfg.removebullet, 0, 0 ] ], this.target, this.target);
 if (this.cfg.timescale) {
 this.target.timescale = 1;
-cc.kDebuff(1);
+cc.kSpeed(1);
 }
 this.khp && (this.target.fanshangkill -= this.khp);
 if (this.cfg.propertys) {
@@ -3381,18 +3350,15 @@ y: this.y
 });
 }
 if (e) {
-void 0 === this.timetoatk && (this.timetoatk = this.atktime);
-var STEP = 0.05, steps = t > STEP ? Math.ceil(t / STEP) : 1, sub = t / steps, si, s, a, n;
-for (si = 0; si < steps && e; si++) {
-s = this.speed * sub;
-this.movedelay -= sub;
+var s = this.speed * t;
+this.movedelay -= t;
 if (this.movedelay <= 0) {
 if (this.isfollow) {
 if (!this.followtarget) {
-n = this.gamelogic.findnpcwithcmp(this, this.enemycamp, !1);
+var n = this.gamelogic.findnpcwithcmp(this, this.enemycamp, !1);
 n.length > 0 && (this.followtarget = n[i.randintSeed(n.length)]);
 }
-this.followtarget && this.followtarget.isdead() ? this.followtarget = null : this.chanagerot(sub);
+this.followtarget && this.followtarget.isdead() ? this.followtarget = null : this.chanagerot(t);
 }
 if (this.flowuser) {
 this.x = this.user.x + this.startx;
@@ -3402,28 +3368,27 @@ this.x = this.x + this.dir.x * s;
 this.y = this.y + this.dir.y * s;
 }
 }
-this.cfg.dirspeed && (this.dir = i.dirRotate(this.dir, this.cfg.dirspeed * sub));
+this.cfg.dirspeed && (this.dir = i.dirRotate(this.dir, this.cfg.dirspeed * t));
 if (this.rotateuser) {
 this.dir = this.user.dir;
 this.x = this.x + this.dir.x * this.rotateuser;
 this.y = this.y + this.dir.y * this.rotateuser;
 }
-this.autodir2 && (this.ag2 += sub * this.autodir2);
-this.timetoatk -= sub;
+this.autodir2 && (this.ag2 += t * this.autodir2);
+this.timetoatk -= t;
 if (this.timetoatk <= 0) {
 this.timetoatk = this.atktime;
 if (this.atkbullet) {
 this.autodir2 && (this.dir2 = i.getdirbyag(this.ag2));
 cc.battlelogic.createonebullet(this.skill, this.atkbullet, this.x, this.y, this.dir2, this.user);
 }
-a = this.checkhit();
+var a = this.checkhit();
 a && 0 == this.notdestroy && (e = !1);
 a && this.cfg.hitres && cc.battlelogic.createeff({
 eff: this.cfg.hitres,
 x: this.x + this.dir.x * this.width / 2,
 y: this.y + this.dir.y * this.width / 2
 });
-}
 }
 }
 this.alive = e;
@@ -4000,8 +3965,8 @@ this.nd_yuangu.active = !this.nd_gold.active;
 }
 },
 onbuy: function() {
-var t = cc.playerData.buyitem(this.itemid, this.count, this.target.ygmode, this.ygprize, this.target.currency);
-0 == t ? cc.uiHelper.showTips("获得", "icons/items/" + this.cfg.icon, void 0, "x" + this.count) : cc.uiHelper.showTips([ "购买成功", "背包已满", "金钱不足", "代币不足" ][t]);
+var t = cc.playerData.buyitem(this.itemid, this.count, this.target.ygmode, this.ygprize);
+0 == t ? cc.uiHelper.showTips("获得", "icons/items/" + this.cfg.icon, void 0, "x" + this.count) : cc.uiHelper.showTips([ "购买成功", "背包已满", "金钱不足", "远古石不足" ][t]);
 }
 });
 cc._RF.pop();
@@ -9672,26 +9637,6 @@ qulity: 5,
 subtype: 1,
 cost: 1e3
 },
-30010: {
-type: 3,
-icon: "item1",
-des: "蕴含灵气的进化之石，用于宠物进化",
-name: "灵兽进化石",
-id: 30010,
-qulity: 5,
-subtype: 1,
-cost: 5e3
-},
-30020: {
-type: 3,
-icon: "item1",
-des: "深渊之塔的专属货币，可在深渊商店兑换成长材料",
-name: "深渊币",
-id: 30020,
-qulity: 5,
-subtype: 1,
-cost: 1
-},
 34062: {
 type: 3,
 icon: "item26",
@@ -12005,7 +11950,7 @@ cc.Notifier.off("rogueRelicChoose", this);
 this.btn_atk.off(cc.Node.EventType.TOUCH_START, this._touchStartEventatk, this);
 this.btn_atk.off(cc.Node.EventType.TOUCH_END, this._touchEndEventatk, this);
 this.btn_atk.off(cc.Node.EventType.TOUCH_CANCEL, this._touchEndEventatk, this);
-cc.kDebuff(1);
+cc.kSpeed(1);
 },
 showRogueRelic: function() {
 try {
@@ -12363,7 +12308,6 @@ cc.gameMgr.catch = 100;
 onclickback: function() {
 cc.battling = !1;
 cc.rogue = !1;
-cc.abyssMode = !1;
 cc.director.loadScene("main");
 },
 playerdie: function() {
@@ -12389,7 +12333,6 @@ this.guajitime = 0;
 cc.soundMgr.playSound("run");
 cc.battling = !1;
 cc.rogue = !1;
-cc.abyssMode = !1;
 cc.director.loadScene("main");
 },
 bosswarning: function() {},
@@ -12924,17 +12867,6 @@ cc.rogueFloorLv = e.lv;
 e.count = 1;
 e.finishmonster = "";
 if (!e.boss) e.boss = (e.monsters || "1:1").split("|")[0].split(":")[0];
-} else if (cc.abyssMode) {
-// 深渊爬塔: 单挑boss, boss属性x5
-var afl = cc.playerData.abyssfloor || 1;
-var abase = y[Math.min(afl, 100)] || y[1];
-e = {};
-for (var ek in abase) e[ek] = abase[ek];
-e.lv = Math.min(999, 1 + Math.floor(afl * 1.5));
-e.count = 1;
-e.finishmonster = "";
-if (!e.boss) e.boss = (e.monsters || "1:1").split("|")[0].split(":")[0];
-cc.abyssTimeLeft = 30; cc._abyssFailed = !1;
 }
 this.mapsize = e.size;
 this.mapsize || (this.mapsize = 15);
@@ -12984,10 +12916,6 @@ this.isshousha = cc.stageid == cc.playerData.stage;
 this.dixing = m[e.mainpart];
 this.createmap(t, e);
 if (cc.rogue) {
-this.maxmonstercount = 0;
-this.bosscount = 0;
-this.createboss();
-} else if (cc.abyssMode) {
 this.maxmonstercount = 0;
 this.bosscount = 0;
 this.createboss();
@@ -13056,15 +12984,6 @@ else if (2 == af) this.bossobj.gamevaule.addpv(113, 50); // 铁壁:防御+50%
 else if (3 == af) this.bossobj.gamevaule.addpv(108, 100); // 巨兽:生命+100%
 else if (4 == af) this.bossobj.gamevaule.addpv(117, 50); // 迅捷:攻速+50%
 this.bossobj.shuxingrefresh && this.bossobj.shuxingrefresh();
-}
-if (cc.abyssMode && this.bossobj) {
-  try {
-    var ab = this.bossobj;
-    ab.maxhp *= 5; ab.hp = ab.maxhp;
-    ab.atk *= 5; ab.matk *= 5;
-    ab.def *= 5; ab.mdef *= 5;
-    ab.shuxingrefresh && ab.shuxingrefresh();
-  } catch (abe) {}
 }
 this.bossstep = 2;
 };
@@ -16292,15 +16211,6 @@ f: 22
 }, {
 k: "鱼图鉴",
 f: 23
-}, {
-k: "深渊之塔",
-f: 18
-}, {
-k: "深渊商店",
-f: 19
-}, {
-k: "猎人营地",
-f: 24
 } ]
 },
 2: {
@@ -16568,13 +16478,12 @@ this.nowweapon.fmcfg && this.nowweapon.fmcfg.atkbuff && (this.fmatkbuf = this.no
 this.shuxingrefresh = function() {
 this.isplayer && this.gamevaule.refreshplayerbp(this.weaponidx);
 this.refreshproprety();
-// 严格rogue: 局内属性封顶(营地破上限, 每营地级放宽)
+// 严格rogue: 局内属性封顶(防秒杀, 保留构筑空间)
 if (cc.rogue && this.isplayer) {
-var cb = (cc.getCampLv ? cc.getCampLv() - 1 : 0);
-if (this.atk > 10000 + cb * 2000) this.atk = 10000 + cb * 2000;
-if (this.matk > 10000 + cb * 2000) this.matk = 10000 + cb * 2000;
-if (this.maxhp > 50000 + cb * 10000) this.maxhp = 50000 + cb * 10000;
-if (this.cri > 50 + cb * 5) this.cri = 50 + cb * 5;
+if (this.atk > 10000) this.atk = 10000;
+if (this.matk > 10000) this.matk = 10000;
+if (this.maxhp > 50000) this.maxhp = 50000;
+if (this.cri > 50) this.cri = 50;
 if (this.hp > this.maxhp) this.hp = this.maxhp;
 }
 };
@@ -17021,7 +16930,7 @@ cc.shenyuan && (i = cc.playerData.stagesy);
 if (cc.rogue && this.isboss) {
 var coin = 5 + Math.floor((cc.rogueFloor || 1) * 3);
 if (cc.rogueCurse) coin *= 3;
-cc.playerData.changeRgore(Math.round(coin * (1 + (cc.getCampBonusPct ? cc.getCampBonusPct() : 0))));
+cc.playerData.changeRgore(coin);
 cc.rogueFloor = (cc.rogueFloor || 1) + 1;
 cc.rogueChoices = null;
 cc.rogueCurse = !1;
@@ -17029,14 +16938,6 @@ if (cc.showRogueRelicPick) {
 var _self = this;
 setTimeout(function() { cc.showRogueRelicPick(); }, 400);
 } else cc.Notifier.emit("rogueRelicChoose");
-} else if (cc.abyssMode && this.isboss) {
-var acoin = Math.round(Math.min(500, 5 + Math.floor((cc.playerData.abyssfloor || 1) * 2)) * (1 + (cc.getCampBonusPct ? cc.getCampBonusPct() : 0)));
-cc.playerData.abysscoin = (cc.playerData.abysscoin || 0) + acoin;
-cc.playerData.additembyid(30020, acoin, !0);
-cc.playerData.abyssfloor = (cc.playerData.abyssfloor || 1) + 1;
-cc.playerData.saveflag = !0;
-cc.uiHelper.showTips("深渊第" + ((cc.playerData.abyssfloor || 1) - 1) + "层通关!获得深渊币x" + acoin + ",进入第" + cc.playerData.abyssfloor + "层");
-setTimeout(function() { cc.battling = !0; cc.director.loadScene("game"); }, 1000);
 } else !this.isboss || cc.stageid != i || cc.hell || cc.wujin || cc.playerData.addstage();
 }
 } else for (t = this.buffarr.length - 1; t >= 0; t--) this.buffarr[t].life < 100 && (this.buffarr[t].life = 0);
@@ -17575,7 +17476,6 @@ this.skills = [ 1 ];
 this.isboss = e;
 this.lighting = s;
 this.zhuanshen = 0;
-this.evolve = 0;
 this.setname();
 this.setbp();
 this.setnextexp();
@@ -17625,7 +17525,7 @@ if (this.lighting) {
 e += 1;
 i += 1;
 }
-for (var s = 0; s < 6; s++) this.bp.push(t[s] + e + i * this.zhuanshen + (this.evolveBonus && this.evolveBonus[this.evolve] || 0) - n.randintSeed(5));
+for (var s = 0; s < 6; s++) this.bp.push(t[s] + e + i * this.zhuanshen - n.randintSeed(5));
 };
 this.caldiaodang = function() {
 this.diaodangarr = [];
@@ -17668,10 +17568,8 @@ this.uuid = t.uuid;
 this.isboss = t.isboss;
 this.lighting = t.lighting;
 this.zhuanshen = 0;
-this.evolve = 0;
 this.exp < 0 && (this.exp = 0);
 t.zhuanshen && (this.zhuanshen = t.zhuanshen);
-t.evolve && (this.evolve = t.evolve);
 this.cfg = i[this.id];
 this.bp = [];
 this.skills = [];
@@ -17693,7 +17591,6 @@ t.lighting = this.lighting;
 t.bp = this.bp;
 t.skills = this.skills;
 t.zhuanshen = this.zhuanshen;
-t.evolve = this.evolve;
 return t;
 };
 this.gainexpv = function(t) {
@@ -17726,42 +17623,6 @@ this.lighting && (this.bp[s] += 1);
 }
 cc.playerData.saveflag = !0;
 return !0;
-};
-this.evolvemax = 10;
-this.evolveBonus = [2, 3, 5, 7, 10, 14, 19, 25, 32, 40];
-this.evolveStoneCost = [1, 2, 3, 5, 8, 12, 18, 25, 35, 50];
-this.getevolvecost = function() {
-return 5e3 * (this.evolve + 1) * (this.evolve + 1);
-};
-this.getevolvestone = function() {
-return 30010;
-};
-this.getevolvestoneneed = function() {
-return this.evolveStoneCost[this.evolve] || 1;
-};
-this.canevolve = function() {
-return this.evolve < this.evolvemax;
-};
-this.getevolvebonus = function() {
-return this.evolveBonus[this.evolve] || 1;
-};
-this.doevolve = function() {
-if (this.evolve >= this.evolvemax) return 3;
-var t = this.getevolvecost();
-if (!(cc.playerData.gold >= t)) return 2;
-var need = this.getevolvestoneneed();
-var st = cc.playerData.finditembyid(this.getevolvestone());
-if (!st || st.count < need) return 1;
-cc.playerData.changegold(-t);
-cc.playerData.xiaohaoitembyid(this.getevolvestone(), need);
-var bonus = this.getevolvebonus();
-this.evolve++;
-for (var s = 0; s < this.bp.length; s++) {
-this.bp[s] += bonus;
-this.isboss && (this.bp[s] += bonus);
-}
-cc.playerData.saveflag = !0;
-return 0;
 };
 };
 cc._RF.pop();
@@ -17859,11 +17720,6 @@ this.needrefreshbook = !0;
 this.petscore = 0;
 this.rgoreCrystal = 0;
 this.rgorePerm = {};
-this.abyssfloor = 1;
-this.abysscoin = 0;
-this.campLv = 1;
-this.campFac = {};
-this.campLastTime = 0;
 };
 this.hasgetcode = function(t) {
 for (var e = !1, i = 0; i < this.libaoarr.length; i++) if (this.libaoarr[i] == t) {
@@ -18148,12 +18004,7 @@ fishbook: this.fishbook,
 fishAuto: this.fishAuto,
 fishcount: this.fishcount,
 fishRodLv: this.fishRodLv,
-fishStats: this.fishStats,
-abyssfloor: this.abyssfloor,
-abysscoin: this.abysscoin,
-campLv: this.campLv,
-campFac: this.campFac,
-campLastTime: this.campLastTime
+fishStats: this.fishStats
 };
 this.battlepet && (t.battlepet = this.battlepet.uuid);
 t.itembag = [];
@@ -18223,11 +18074,6 @@ this.fishAuto = n.fishAuto || !1;
 this.fishcount = n.fishcount || 0;
 this.fishRodLv = n.fishRodLv || 1;
 this.fishStats = n.fishStats || {};
-this.abyssfloor = n.abyssfloor || 1;
-this.abysscoin = n.abysscoin || 0;
-this.campLv = n.campLv || 1;
-this.campFac = n.campFac || {};
-this.campLastTime = n.campLastTime || 0;
 this.libaoarr || (this.libaoarr = []);
 n.stagesy && (this.stagesy = n.stagesy);
 n.rgoreCrystal && (this.rgoreCrystal = n.rgoreCrystal);
@@ -18340,8 +18186,6 @@ if (this.fishbook) {
 var fp = this.getfishbsproperty();
 for (var fi = 0; fi < fp.length; fi++) prop.push(fp[fi]);
 }
-var cp = cc.getCampProperty ? cc.getCampProperty() : [];
-for (var ci = 0; ci < cp.length; ci++) prop.push(cp[ci]);
 if (cc.rogue) return { property: prop };
 if (this.rgorePerm) {
 if (this.rgorePerm.atk) prop.push([ 9, this.rgorePerm.atk * 20 ]);
@@ -18525,8 +18369,8 @@ a && this.xiaohaoitembyid(i, s);
 this.saveflag = !0;
 return o;
 };
-this.buyitem = function(t, e, i, s, c) {
-if (i) return this.buytimebyitem(t, e, c || 30005, s);
+this.buyitem = function(t, e, i, s) {
+if (i) return this.buytimebyitem(t, e, 30005, s);
 var n = g[t], a = n.cost;
 a || (a = 100);
 e || (e = 1);
@@ -25219,7 +25063,6 @@ _fishCatch: function(fishId) {
 try {
 if (!fishId) fishId = cc.rollFish();
 cc.playerData.additembyid(fishId, 1, !0);
-cc.playerData.changegold(Math.round(30 * (1 + (cc.getCampBonusPct ? cc.getCampBonusPct() : 0))));
 cc.playerData.fishcount = (cc.playerData.fishcount || 0) + 1;
 cc.playerData.fishbook[fishId] = (cc.playerData.fishbook[fishId] || 0) + 1;
 // 记录该鱼钓次数(统计)
@@ -25244,10 +25087,8 @@ cc.playerData.saveflag = !0;
 _fishChest: function() {
 try {
 var cid = [ 30001, 30002, 30010 ][Math.floor(Math.random() * 3)];
-var fp = cc.getCampBonusPct ? cc.getCampBonusPct() : 0;
-cc.playerData.additembyid(cid, 1 + Math.floor(fp * 2), !0);
-cc.playerData.changegold(Math.round(200 * (1 + fp)));
-cc.uiHelper.showTips("钓到宝箱!获得稀有材料x" + (1 + Math.floor(fp * 2)));
+cc.playerData.additembyid(cid, 1, !0);
+cc.uiHelper.showTips("钓到宝箱!获得稀有材料");
 if (cc.playerData._fishSession) cc.playerData._fishSession.chest++;
 cc.playerData.saveflag = !0;
 } catch (e) {}
@@ -25333,233 +25174,6 @@ host2.addChild(panel, 99999);
 panel.on(cc.Node.EventType.TOUCH_START, function(e) { e.stopPropagation(); });
 _this._fishBookPanel = panel;
 } catch (err) { cc.log("fishbook err:" + err); }
-},
-createCamp: function() {
-try {
-if (this._campPanel) return;
-var _this = this;
-// 屏自适应 + 整体放大(滚动下拉, 大字号)
-var winH = (cc.winSize && cc.winSize.height) || 540;
-var W = 620;
-var maxH = Math.min(winH * 0.88, 560);
-var topH = 84, botH = 52;
-var gap = 4;
-var rowH = 64;
-var rowW = W - 32;
-var icSize = rowH - 16;
-var contentH = (rowH + gap) * 6 + 12;   // = 408
-var viewH = Math.min(contentH, Math.max(280, maxH - topH - botH));
-var H = topH + viewH + botH;
-// 屏 540 -> viewH=345(可滚63), H=481; 屏 640 -> viewH=408(刚好), H=544
-var nameFS = 17, desFS = 12, costFS = 15, btnFS = 16, iconFS = 20;
-// 面板: 深蓝背景 + 黄边(传统通用风格)
-var panel = new cc.Node("camp_panel");
-panel.setContentSize(W, H);
-panel.setPosition(0, 0);
-var bg = panel.addComponent(cc.Graphics);
-bg.fillColor = new cc.Color(20, 26, 48, 255);
-bg.roundRect(-W / 2, -H / 2, W, H, 10);
-bg.fill();
-bg.strokeColor = new cc.Color(220, 180, 60, 255);
-bg.lineWidth = 2;
-bg.roundRect(-W / 2 + 3, -H / 2 + 3, W - 6, H - 6, 8);
-bg.stroke();
-var clv = cc.getCampLv();
-var pct = cc.getCampBonusPct ? cc.getCampBonusPct() : 0;
-// 标题
-var title = new cc.Node("title");
-var tlb = title.addComponent(cc.Label);
-tlb.fontSize = 22; tlb.isBold = !0; tlb.isSystemFontUsed = !0; tlb.lineHeight = 26;
-tlb.string = "猎人营地  Lv." + clv + "/" + cc.campCfg.lvMax;
-tlb.color = new cc.Color(255, 215, 80, 255);
-title.setPosition(0, H / 2 - 22);
-panel.addChild(title);
-// 挂机信息
-var yieldlb = new cc.Node("yield");
-var yl = yieldlb.addComponent(cc.Label);
-yl.fontSize = 12; yl.isSystemFontUsed = !0; yl.lineHeight = 15; yl.isBold = !0;
-yl.color = new cc.Color(120, 230, 150, 255);
-yl.string = "挂机: " + (cc.getCampYield ? cc.getCampYield() : 0) + "/秒   全局产出+" + Math.round(pct * 100) + "%";
-yieldlb.setPosition(0, H / 2 - 42);
-panel.addChild(yieldlb);
-// 营地升级按钮(加大)
-var cupbtn = new cc.Node("campup");
-cupbtn.setContentSize(300, 34);
-var cg = cupbtn.addComponent(cc.Graphics);
-cg.fillColor = new cc.Color(60, 110, 200, 255);
-cg.roundRect(-150, -17, 300, 34, 6);
-cg.fill();
-var culb = new cc.Node("culb");
-culb.setContentSize(300, 34);
-var cul = culb.addComponent(cc.Label);
-cul.fontSize = 15; cul.isBold = !0; cul.isSystemFontUsed = !0; cul.lineHeight = 18;
-var ccup = cc.getCampUpCost();
-cul.string = clv >= cc.campCfg.lvMax ? "营地已达满级" : "营地升级 (" + (ccup ? cc._resStr(ccup) : "") + ")";
-cul.color = cc.Color.WHITE;
-culb.setPosition(0, 0);
-cupbtn.addChild(culb);
-cupbtn.setPosition(0, H / 2 - 72);
-panel.addChild(cupbtn);
-cupbtn.on(cc.Node.EventType.TOUCH_END, function() {
-var r = cc.upgradeCamp();
-if (0 == r) {
-cc.uiHelper.showTips("营地升级! Lv." + cc.getCampLv());
-_this._campPanel.destroy(); _this._campPanel = null; _this.createCamp();
-} else if (2 == r) cc.uiHelper.showTips("已达最高等级");
-else if (3 == r) cc.uiHelper.showTips("资源不足: " + cc._resStr(cc.getCampUpCost()));
-});
-// 设施区(ScrollView + Mask 滚动下拉)
-var viewY = H / 2 - topH - viewH / 2;
-var viewNode = new cc.Node("viewNode");
-viewNode.setContentSize(W - 24, viewH);
-viewNode.setPosition(0, viewY);
-viewNode.anchorY = 0.5;
-panel.addChild(viewNode);
-var useScroll = contentH > viewH + 1;
-if (!useScroll) contentH = viewH;
-var content = new cc.Node("content");
-content.setContentSize(rowW, contentH);
-content.anchorX = 0.5; content.anchorY = 1;
-content.y = viewH / 2;
-viewNode.addChild(content);
-// ScrollView + Mask 启用真滚动(失败兜底)
-if (useScroll) {
-try {
-var mask = viewNode.addComponent(cc.Mask);
-mask.type = 0;
-var scroll = viewNode.addComponent(cc.ScrollView);
-scroll.content = content;
-scroll.vertical = true;
-scroll.horizontal = false;
-scroll.inertia = true;
-scroll.brake = 0.75;
-scroll.bounceDuration = 0.23;
-} catch (e) {}
-}
-var facColor = {
-pet: [220, 130, 60], forge: [210, 75, 55], pond: [60, 130, 200],
-train: [155, 90, 210], store: [215, 175, 60], altar: [130, 70, 150]
-};
-var fm = cc.campCfg.facs;
-var facMax = cc.getFacMax();
-var keys = [ "pet", "forge", "pond", "train", "store", "altar" ];
-for (var i = 0; i < keys.length; i++) {
-(function(k, idx) {
-var f = fm[k];
-var lv = cc.getFacLv(k);
-var cost = cc.getFacUpCost(k);
-var cc3 = facColor[k] || [120, 120, 140];
-var row = new cc.Node("fac_" + k);
-row.setContentSize(rowW, rowH - gap);
-row.anchorY = 0.5;
-var rg = row.addComponent(cc.Graphics);
-rg.fillColor = new cc.Color(40, 46, 72, 255);
-rg.roundRect(-rowW / 2, -(rowH - gap) / 2, rowW, rowH - gap, 6);
-rg.fill();
-var ic = new cc.Node("icon");
-ic.setContentSize(icSize, icSize);
-ic.anchorX = 0.5; ic.anchorY = 0.5;
-var ig = ic.addComponent(cc.Graphics);
-ig.fillColor = new cc.Color(cc3[0], cc3[1], cc3[2], 255);
-ig.circle(0, 0, icSize / 2);
-ig.fill();
-var iconLb = new cc.Node("iclbl");
-iconLb.setContentSize(icSize, icSize);
-iconLb.anchorX = 0.5; iconLb.anchorY = 0.5;
-var il = iconLb.addComponent(cc.Label);
-il.fontSize = iconFS; il.isBold = !0; il.isSystemFontUsed = !0; il.lineHeight = iconFS + 2;
-il.string = f.name.charAt(0);
-il.color = cc.Color.WHITE;
-iconLb.setPosition(0, 0);
-ic.addChild(iconLb);
-ic.setPosition(-rowW / 2 + icSize / 2 + 6, 0);
-row.addChild(ic);
-var nameLb = new cc.Node("name");
-nameLb.setContentSize(rowW * 0.4, nameFS + 4);
-var nl = nameLb.addComponent(cc.Label);
-nl.fontSize = nameFS; nl.isBold = !0; nl.isSystemFontUsed = !0; nl.lineHeight = nameFS + 2;
-nl.overflow = cc.Label.Overflow.SHRINK;
-nl.color = cc.Color.WHITE;
-nl.string = f.name + " Lv." + lv + "/" + facMax;
-nameLb.setPosition(-rowW / 2 + icSize + 14, 12);
-nameLb.anchorX = 0;
-row.addChild(nameLb);
-var desLb = new cc.Node("des");
-desLb.setContentSize(rowW * 0.4, desFS + 4);
-var dl = desLb.addComponent(cc.Label);
-dl.fontSize = desFS; dl.isSystemFontUsed = !0; dl.lineHeight = desFS + 2; dl.isBold = !0;
-dl.overflow = cc.Label.Overflow.SHRINK;
-dl.color = new cc.Color(180, 200, 230, 255);
-dl.string = f.des;
-desLb.setPosition(-rowW / 2 + icSize + 14, -12);
-desLb.anchorX = 0;
-row.addChild(desLb);
-var btnW = 88, btnH = rowH - 14;
-var fup = new cc.Node("fup");
-fup.setContentSize(btnW, btnH);
-var fbg = fup.addComponent(cc.Graphics);
-fbg.fillColor = new cc.Color(60, 150, 80, 255);
-fbg.roundRect(-btnW / 2, -btnH / 2, btnW, btnH, 6);
-fbg.fill();
-var flb2 = new cc.Node("flb");
-flb2.setContentSize(btnW, btnH);
-var fl = flb2.addComponent(cc.Label);
-fl.fontSize = btnFS; fl.isBold = !0; fl.isSystemFontUsed = !0; fl.lineHeight = btnFS + 2;
-fl.string = "升级";
-fl.color = cc.Color.WHITE;
-flb2.setPosition(0, 0);
-fup.addChild(flb2);
-fup.setPosition(rowW / 2 - btnW / 2 - 4, 0);
-row.addChild(fup);
-// 费用放按钮左侧(加宽 150, 字号 15 清晰)
-var costW = 150;
-var costLb = new cc.Node("cost");
-costLb.setContentSize(costW, costFS + 4);
-var cl2 = costLb.addComponent(cc.Label);
-cl2.fontSize = costFS; cl2.isSystemFontUsed = !0; cl2.lineHeight = costFS + 2; cl2.isBold = !0;
-cl2.overflow = cc.Label.Overflow.SHRINK;
-cl2.color = new cc.Color(255, 200, 90, 255);
-cl2.string = cc._resStr(cost);
-costLb.setPosition(fup.x - btnW / 2 - costW / 2 - 10, 0);
-costLb.anchorX = 0.5;
-row.addChild(costLb);
-fup.on(cc.Node.EventType.TOUCH_END, function() {
-var r = cc.upgradeFac(k);
-if (0 == r) {
-cc.uiHelper.showTips(f.name + "升级! Lv." + cc.getFacLv(k));
-_this._campPanel.destroy(); _this._campPanel = null; _this.createCamp();
-} else if (2 == r) cc.uiHelper.showTips("已达上限(升营地)");
-else if (3 == r) cc.uiHelper.showTips("资源不足: " + cc._resStr(cc.getFacUpCost(k)));
-});
-row.setPosition(0, -idx * (rowH + gap) - rowH / 2);
-content.addChild(row);
-})(keys[i], i);
-}
-var close = new cc.Node("close");
-close.setContentSize(160, 32);
-var cg2 = close.addComponent(cc.Graphics);
-cg2.fillColor = new cc.Color(150, 40, 40, 255);
-cg2.roundRect(-80, -16, 160, 32, 5);
-cg2.fill();
-var clb = new cc.Node("clb");
-clb.setContentSize(160, 32);
-var cl = clb.addComponent(cc.Label);
-cl.fontSize = 14; cl.isBold = !0; cl.isSystemFontUsed = !0; cl.lineHeight = 18;
-cl.string = "返回关闭";
-cl.color = cc.Color.WHITE;
-clb.setPosition(0, 0);
-close.addChild(clb);
-close.setPosition(0, -H / 2 + 22);
-panel.addChild(close);
-close.on(cc.Node.EventType.TOUCH_END, function() {
-_this._campPanel.destroy(); _this._campPanel = null;
-});
-var host = cc.find("Canvas") || this.node;
-host.addChild(panel, 99999);
-panel.setPosition(0, 0);
-panel.on(cc.Node.EventType.TOUCH_START, function(e) { e.stopPropagation(); });
-_this._campPanel = panel;
-} catch (err) { cc.log("camp err:" + err); }
 }
 });
 cc._RF.pop();
@@ -26938,7 +26552,6 @@ cc.rogue = !0;
 cc.rogueFloor = 1;
 cc.rogueRelics = [];
 cc.rogueBossAffix = 0;
-cc.abyssMode = !1;
 cc.wujin = !1;
 cc.hell = !1;
 cc.mode1w = !1;
@@ -26947,16 +26560,7 @@ cc.battling = !0;
 cc.director.loadScene("game");
 } else if (21 == e) {
 cc.uimain.createRgoreShop();
-} else if (22 == e) cc.uimain.createfishing(); else if (23 == e) cc.uimain.createfishbook(); else if (18 == e) {
-cc.abyssMode = !0;
-cc.rogue = !1;
-cc.wujin = !1;
-cc.hell = !1;
-cc.mode1w = !1;
-cc.stageid = 1;
-cc.battling = !0;
-cc.director.loadScene("game");
-} else if (19 == e) cc.uimain.createshop(201); else if (24 == e) cc.uimain.createCamp();
+} else if (22 == e) cc.uimain.createfishing(); else if (23 == e) cc.uimain.createfishbook();
 this.node.destroy();
 },
 update: function(t) {
@@ -27163,7 +26767,6 @@ for (e = 0; e < 5; e++) {
 s = cc.instantiate(this.pb_skill);
 this.nd_skilllist.addChild(s);
 }
-this.initEvolveBtn();
 cc.Notifier.emit("clickpet", t[0][0]);
 },
 refreshall: function(t) {
@@ -27186,7 +26789,6 @@ this.nd_zhuanshen.active = t.canzhuanshen();
 this.refreshstate(t);
 this.refreshskill(t);
 this.onshuxing();
-this.refreshEvolveBtn();
 },
 setcitiao: function(t, e) {
 for (var i = 0; i < e.length; i++) {
@@ -27267,58 +26869,6 @@ t.refreshall(t.petdata);
 t.nowlv.string = t.petdata.zhuanshen + "转lv." + t.petdata.lv;
 }
 });
-},
-onclickevolve: function() {
-var t = this;
-var ecost = t.petdata.getevolvecost();
-var estone = t.petdata.getevolvestoneneed();
-var ebonus = t.petdata.getevolvebonus();
-cc.uiHelper.messageBox("进化", "灵宠进化(" + t.petdata.evolve + "/" + t.petdata.evolvemax + ")\n消耗金币" + ecost + "+灵兽进化石" + estone + "个\n进化后全成长+" + ebonus + "(首领额外+" + ebonus + ")", function() {
-var r = t.petdata.doevolve();
-if (0 == r) {
-cc.uiHelper.showTips("进化成功!");
-t.refreshall(t.petdata);
-} else if (1 == r) cc.uiHelper.showTips("进化石不足");
-else if (2 == r) cc.uiHelper.showTips("金币不足");
-else if (3 == r) cc.uiHelper.showTips("已达最大进化");
-});
-},
-initEvolveBtn: function() {
-try {
-if (this._evolveBtn) return;
-var _this = this;
-var node = new cc.Node("btn_evolve");
-node.setContentSize(300, 70);
-node.setPosition(0, 200);
-var g = node.addComponent(cc.Graphics);
-g.fillColor = new cc.Color(200, 50, 50);
-g.rect(-150, -35, 300, 70);
-g.fill();
-g.strokeColor = new cc.Color(255, 215, 0);
-g.lineWidth = 4;
-g.stroke();
-var lbn = new cc.Node("lb");
-var lb = lbn.addComponent(cc.Label);
-lb.fontSize = 32;
-lb.string = "灵宠进化 [上限10] 当前0";
-lb.isSystemFontUsed = true;
-lb.lineHeight = 40;
-lb.color = cc.Color.WHITE;
-lbn.setPosition(0, 0);
-node.addChild(lbn);
-this._evolveBtn = node;
-node.on(cc.Node.EventType.TOUCH_END, function() {
-_this.onclickevolve();
-});
-this.node.addChild(node, 9999);
-} catch (err) { cc.log("evolvebtn err:" + err); }
-},
-refreshEvolveBtn: function() {
-try {
-if (!this._evolveBtn) return;
-var lb = this._evolveBtn.getChildByName("lb").getComponent(cc.Label);
-lb.string = "灵宠进化 [上限" + this.petdata.evolvemax + "] 当前" + this.petdata.evolve;
-} catch (err) {}
 },
 onclickfsall: function() {
 var t = this;
@@ -27588,11 +27138,10 @@ uishop: [ function(t, e) {
 "use strict";
 cc._RF.push(e, "3413crUmFRONrngGSBhpcb7", "uishop");
 var i = {
-1: [ 30001, [ 30001, 10 ], 10001, 10101, 10201, 20001, 20101, 20201, 20301, 20401, [ 30010, 100, 5e5 ] ],
+1: [ 30001, [ 30001, 10 ], 10001, 10101, 10201, 20001, 20101, 20201, 20301, 20401 ],
 2: [ 38001, 38002, 38003, [ 38001, 10 ], [ 38002, 10 ], [ 38003, 10 ] ],
 3: [ 20601, 20602, 20603, 20604, 20605, 20606 ],
-101: [ [ 30006, 1, 800 ], [ 31024, 1, 2e3 ], [ 31025, 1, 2e3 ], [ 31026, 1, 2e3 ], [ 10021, 1, 500 ], [ 10217, 1, 500 ], [ 10116, 1, 500 ] ],
-201: [ [ 30001, 1, 100 ], [ 30002, 1, 80 ], [ 30003, 1, 80 ], [ 30004, 1, 80 ], [ 20601, 1, 300 ], [ 20606, 1, 300 ], [ 10001, 1, 50 ], [ 10101, 1, 50 ], [ 10201, 1, 50 ], [ 20001, 1, 200 ], [ 20101, 1, 200 ], [ 20201, 1, 200 ] ]
+101: [ [ 30006, 1, 800 ], [ 31024, 1, 2e3 ], [ 31025, 1, 2e3 ], [ 31026, 1, 2e3 ], [ 10021, 1, 500 ], [ 10217, 1, 500 ], [ 10116, 1, 500 ] ]
 };
 cc.Class({
 extends: cc.Component,
@@ -27604,7 +27153,6 @@ type: cc.Node
 },
 initdata: function(t) {
 t > 100 && (this.ygmode = !0);
-this.currency = (t == 201) ? 30020 : 30005;
 var e = i[t];
 this.tbv = this.tableview.getComponent("tableView");
 this.tbv.initTableView(e.length, {
@@ -28834,116 +28382,4 @@ return pool[Math.floor(Math.random() * pool.length)];
 cc.getFishById = function(id) {
 for (var i = 0; i < cc.fishSpecies.length; i++) if (cc.fishSpecies[i].id === id) return cc.fishSpecies[i];
 return null;
-};
-// ===== 猎人营地·经营建设（与关卡闭环）=====
-// 资源: gold金币 / coin深渊币(30020) / crystal结晶 / stone进化石(30010) / fishGate鱼图鉴解锁数(门槛)
-cc.campCfg = {
-lvMax: 10,
-// 营地升级费用(当前级->下一级): 线性并绑定各关卡产出
-lvCost: [
-  null,
-  { gold: 5000, coin: 50 },
-  { gold: 2e4, coin: 200 },
-  { gold: 8e4, coin: 600, fishGate: 3 },
-  { gold: 2e5, coin: 1500, crystal: 50, fishGate: 5 },
-  { gold: 5e5, coin: 4000, crystal: 200, fishGate: 7 },
-  { gold: 1e6, coin: 1e4, crystal: 600, stone: 20, fishGate: 9 },
-  { gold: 2e6, coin: 2.5e4, crystal: 1500, stone: 50, fishGate: 11 },
-  { gold: 5e6, coin: 6e4, crystal: 4000, stone: 120, fishGate: 13 },
-  { gold: 1e7, coin: 1.5e5, crystal: 1e4, stone: 300, fishGate: 15 }
-],
-facMax: 10,
-// 设施: res=每级单位资源消耗(线性); lk=主闭环关卡
-facs: {
-  pet:   { name: "宠物屋", des: "宠物全属性+2/级", lk: "灵宠进化", res: { gold: 800, stone: 1 } },
-  forge: { name: "铁匠铺", des: "爆伤+8/级(爆率)", lk: "深渊之塔", res: { gold: 500, coin: 30 } },
-  pond:  { name: "钓鱼塘", des: "生命+400/级", lk: "钓鱼图鉴", res: { gold: 400, fishGate: 1 } },
-  train: { name: "训练场", des: "攻击+40/级", lk: "肉鸽秘境", res: { gold: 600, crystal: 10 } },
-  store: { name: "仓库", des: "防御+20/级", lk: "通用", res: { gold: 1000 } },
-  altar: { name: "祭坛", des: "掉率+4/级 爆伤+4/级", lk: "肉鸽+深渊", res: { gold: 1000, crystal: 20, coin: 50 } }
-}
-};
-cc.getCampLv = function() { return cc.playerData ? (cc.playerData.campLv || 1) : 1; };
-cc.getFacLv = function(k) { return cc.playerData && cc.playerData.campFac ? (cc.playerData.campFac[k] || 0) : 0; };
-cc.getFacMax = function() { return Math.min(10, cc.getCampLv()); };
-// 营地每级+10% 全局关卡产出(永久百分比/破上限)
-cc.getCampBonusPct = function() { return (cc.getCampLv() - 1) * 0.1; };
-// 资源检测/扣除/格式化
-cc._hasRes = function(t) {
-  if (!cc.playerData) return !1;
-  if (t.gold && cc.playerData.gold < t.gold) return !1;
-  if (t.coin && (cc.playerData.abysscoin || 0) < t.coin) return !1;
-  if (t.crystal && (cc.playerData.rgoreCrystal || 0) < t.crystal) return !1;
-  if (t.stone) { var s = cc.playerData.finditembyid(30010); if (!s || s.count < t.stone) return !1; }
-  if (t.fishGate && Object.keys(cc.playerData.fishbook || {}).length < t.fishGate) return !1;
-  return !0;
-};
-cc._payRes = function(t) {
-  if (t.gold) cc.playerData.changegold(-t.gold);
-  if (t.coin) { cc.playerData.abysscoin -= t.coin; cc.playerData.xiaohaoitembyid(30020, t.coin); }
-  if (t.crystal) cc.playerData.changeRgore(-t.crystal);
-  if (t.stone) cc.playerData.xiaohaoitembyid(30010, t.stone);
-  cc.playerData.saveflag = !0;
-};
-cc._resStr = function(t) {
-  var a = [];
-  if (t.gold) a.push(t.gold + "金");
-  if (t.coin) a.push(t.coin + "深渊币");
-  if (t.crystal) a.push(t.crystal + "结晶");
-  if (t.stone) a.push(t.stone + "进化石");
-  if (t.fishGate) a.push("鱼图鉴" + t.fishGate + "种");
-  return a.join("+");
-};
-cc.getCampUpCost = function() {
-  var lv = cc.getCampLv();
-  return cc.campCfg.lvCost[Math.min(9, lv)] || null;
-};
-cc.upgradeCamp = function() {
-  if (!cc.playerData) return 1;
-  var lv = cc.getCampLv();
-  if (lv >= cc.campCfg.lvMax) return 2;
-  var cost = cc.getCampUpCost();
-  if (!cost) return 2;
-  if (!cc._hasRes(cost)) return 3;
-  cc._payRes(cost);
-  cc.playerData.campLv = lv + 1;
-  return 0;
-};
-cc.getFacUpCost = function(k) {
-  var c = cc.campCfg.facs[k];
-  var lv = cc.getFacLv(k);
-  var r = c.res, o = {};
-  for (var key in r) o[key] = Math.floor(r[key] * (lv + 1));
-  return o;
-};
-cc.upgradeFac = function(k) {
-  if (!cc.playerData) return 1;
-  var c = cc.campCfg.facs[k];
-  var lv = cc.getFacLv(k);
-  if (lv >= cc.getFacMax()) return 2;
-  var cost = cc.getFacUpCost(k);
-  if (!cc._hasRes(cost)) return 3;
-  cc._payRes(cost);
-  cc.playerData.campFac[k] = lv + 1;
-  return 0;
-};
-// 营地设施全局加成(爆率/百分比): 合并到getplayerbsproperty
-cc.getCampProperty = function() {
-  var prop = [];
-  if (!cc.playerData || !cc.playerData.campFac) return prop;
-  var f = cc.playerData.campFac;
-  if (f.pet) { for (var i = 0; i < f.pet; i++) prop.push([ 2, 2 ], [ 3, 2 ], [ 4, 2 ], [ 5, 2 ], [ 6, 2 ], [ 1, 2 ]); }
-  if (f.forge) prop.push([ 21, f.forge * 8 ]);
-  if (f.pond) prop.push([ 8, f.pond * 400 ]);
-  if (f.train) prop.push([ 9, f.train * 40 ]);
-  if (f.store) prop.push([ 13, f.store * 20 ]);
-  if (f.altar) { prop.push([ 22, f.altar * 4 ]); prop.push([ 21, f.altar * 4 ]); }
-  return prop;
-};
-// 营地挂机产出(金币/秒)：仅来自已建设施，无设施则不产(避免白送)
-cc.getCampYield = function() {
-if (!cc.playerData) return 0;
-var f = cc.playerData.campFac || {};
-var g = (f.pet || 0) * 10 + (f.forge || 0) * 15 + (f.pond || 0) * 8 + (f.train || 0) * 12 + (f.store || 0) * 10 + (f.altar || 0) * 20;
-return Math.max(0, g);
 };

@@ -89,15 +89,16 @@
 | 项 | 内容 |
 |----|------|
 | 入口 | 国王NPC → "猎人营地"(f:24) → `createCamp()`（Canvas挂载深蓝面板+系统配色） |
-| 营地等级 | `cc.getCampLv()`（campLv 1~10），升级费用 `cc.campCfg.lvCost[当前级]`（5000~1000万），影响设施上限 `getFacMax()=min(10,campLv)` |
-| 设施配置 | `cc.campCfg.facs`：pet宠物屋/forge铁匠铺/pond钓鱼塘/train训练场/store仓库/altar祭坛 |
-| 设施升级 | `cc.upgradeFac(k)`：费用=`costBase×(当前级+1)×mul`；结果码 0成功/2达上限(需升营地)/3金币不足 |
-| 设施加成 | `cc.getCampProperty()`：pet全属性+1/级、forge爆伤+10/级、pond生命+200/级、train攻击+20/级、store防御+10/级、altar掉率+5爆伤+5/级 |
-| 加成生效 | `getplayerbsproperty` 合并（fishbook之后、肉鸽判断之前 → 全局生效含肉鸽新局基础） |
-| 存档 | `campLv`(默认1) / `campFac{}`(默认空) |
-| UI | `createCamp()`：标题+营地升级按钮+6设施行(名称/等级/效果/升级按钮)+返回按钮，升级后重建面板刷新 |
-| 挂机产出 | `cc.getCampYield()`：金/秒=Σ设施级×系数(pet10/forge15/pond8/train12/store10/altar20)，无设施=0；进入main首帧结算离线收益(dt上限8h)`changegold`+showTips；在线每60s心跳写`campLastTime` |
-| 存档补 | 新增 `campLastTime`(时间戳,默认0)，init/savedata/loaddata 三处 |
+| 营地等级 | `campLv` 1~10；升级费 `campCfg.lvCost[当前级]`=多资源{gold,coin深渊币,crystal结晶,stone进化石,fishGate鱼图鉴种}，线性递增；影响设施上限 `getFacMax()=min(10,campLv)` |
+| 全局产出加成 | `getCampBonusPct()=(campLv-1)*0.1`：每营地级+10% 深渊币/结晶/钓鱼收益（永久百分比/破上限），接入 abyssMode/rogue/钓鱼结算 |
+| 破上限 | 肉鸽 `shuxingrefresh`：攻/魔攻上限 +2000/级、生命 +10000/级、暴击 +5/级（依campLv） |
+| 设施配置 | `campCfg.facs`：pet宠物屋/forge铁匠铺/pond钓鱼塘/train训练场/store仓库/altar祭坛；每项 `res`=每级单位资源(线性) + `lk`=主闭环关卡 |
+| 设施升级 | `upgradeFac(k)`：费=`res×(当前级+1)` 多资源；pet→进化石/forge→深渊币/pond→鱼图鉴门槛/train→结晶/store→金币/altar→结晶+深渊币；码 0成功/2达上限/3资源不足 |
+| 设施加成 | `getCampProperty()`：pet全属性+2/级、forge爆伤+8/级、pond生命+400/级、train攻击+40/级、store防御+20/级、altar掉率+4&爆伤+4/级（爆率类） |
+| 加成生效 | `getplayerbsproperty` 合并（fishbook之后、肉鸽判断之前 → 全局含肉鸽新局基础） |
+| 挂机产出 | `getCampYield()`：金/秒=Σ设施级×系数(pet10/forge15/pond8/train12/store10/altar20)，无设施=0；进入main首帧结算离线收益(上限8h) |
+| 存档 | `campLv`/`campFac{}`/`campLastTime`(挂机时间戳，init/savedata/loaddata 三处) |
+| UI | `createCamp()`：标题(含全局产出%)+营地升级(多资源费)+6设施行(效果+费用)+挂机产金显示；升级后重建 |
 
 ---
 
