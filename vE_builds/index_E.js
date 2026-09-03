@@ -12997,6 +12997,15 @@ this.player.shuxingrefresh && this.player.shuxingrefresh();
 if (cc.corridor && this.player) {
 try { cc.corridorSessionApply && cc.corridorSessionApply(this.player); } catch (ce) { cc.log("corridor apply err:" + ce); }
 }
+if (cc.tame && this.player && this.player.gamevaule) {
+try {
+// 驯兽师默契: 驯服战玩家临时增益, 保证可打残目标
+this.player.gamevaule.addpv(109, 40);
+this.player.gamevaule.addpv(108, 40);
+this.player.gamevaule.addpv(113, 30);
+this.player.shuxingrefresh && this.player.shuxingrefresh();
+} catch (te2) { cc.log("tame buff err:" + te2); }
+}
 this.playerData.battlepet && (this.petplayer = this.createnpc({
 camp: 1,
 lv: this.playerData.battlepet.lv,
@@ -29445,7 +29454,7 @@ try {
 if (cc._corPanel && cc._corPanel.isValid) { cc._corPanel.destroy(); cc._corPanel = null; }
 var pd = cc.playerData;
 var panel = new cc.Node("cor_main");
-var W = 620, H = 480;
+var W = 620, H = Math.min(480, ((cc.winSize && cc.winSize.height) || 540) * 0.9);
 panel.setContentSize(W, H);
 panel.setPosition(0, 0);
 var pg = panel.addComponent(cc.Graphics);
@@ -29562,7 +29571,7 @@ if (cc._corPanel && cc._corPanel.isValid) { cc._corPanel.destroy(); cc._corPanel
 var pd = cc.playerData;
 if (!pd.corridorTalent) pd.corridorTalent = {};
 var panel = new cc.Node("cor_talent");
-var W = 640, H = 500;
+var W = 640, H = Math.min(500, ((cc.winSize && cc.winSize.height) || 540) * 0.92);
 panel.setContentSize(W, H);
 panel.setPosition(0, 0);
 var pg = panel.addComponent(cc.Graphics);
@@ -29706,12 +29715,12 @@ try { cc.beastPoolIds = window.__require("petbookcfg"); } catch (e) {
 cc.beastPoolIds = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39, 40, 42, 43, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 82, 83, 84, 85, 86, 87, 88, 94, 98, 99, 100, 103, 104, 105, 106, 107, 108, 109, 110, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 138, 139, 142, 155, 156, 157, 158, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233 ];
 }
 cc.beastSancts = [
-{ id: 0, name: "炎窟", base: 5, unlock: 3, elName: "火" },
-{ id: 1, name: "深海", base: 12, unlock: 8, elName: "水" },
-{ id: 2, name: "翠林", base: 22, unlock: 15, elName: "草" },
-{ id: 3, name: "圣辉殿", base: 35, unlock: 25, elName: "光" },
-{ id: 4, name: "幽冥渊", base: 50, unlock: 40, elName: "暗" },
-{ id: 5, name: "混元塔", base: 70, unlock: 55, elName: "混" }
+{ id: 0, name: "炎窟", base: 5, unlock: 1, elName: "火" },
+{ id: 1, name: "深海", base: 12, unlock: 5, elName: "水" },
+{ id: 2, name: "翠林", base: 22, unlock: 10, elName: "草" },
+{ id: 3, name: "圣辉殿", base: 35, unlock: 18, elName: "光" },
+{ id: 4, name: "幽冥渊", base: 50, unlock: 28, elName: "暗" },
+{ id: 5, name: "混元塔", base: 70, unlock: 40, elName: "混" }
 ];
 cc.beastEventPool = [
 { n: "遭遇战", d: "前方出现野生魔物!", opts: [ { t: "迎战", base: 55, ok: "击退! 魔晶+60", okGem: 60, fail: "受创撤退! 疲劳+25", failFat: 25 }, { t: "潜行绕过", base: 75, ok: "安全通过", okGem: 15, fail: "被发现! 疲劳+15", failFat: 15 } ] },
@@ -29774,7 +29783,7 @@ cc.beastEnsureInit();
 if (cc._beastPanel && cc._beastPanel.isValid) { cc._beastPanel.destroy(); cc._beastPanel = null; }
 var pd = cc.playerData;
 var panel = new cc.Node("beast_main");
-var W = 640, H = 520;
+var W = 640, H = Math.min(520, ((cc.winSize && cc.winSize.height) || 540) * 0.9);
 panel.setContentSize(W, H);
 panel.setPosition(0, 0);
 var pg = panel.addComponent(cc.Graphics);
@@ -29810,6 +29819,13 @@ i2l.string = "驯服总数: " + pd.tameCount + "   图鉴: " + bkCount + "种(�
 i2l.color = new cc.Color(160, 175, 205, 255);
 info2.setPosition(0, H / 2 - 78);
 panel.addChild(info2);
+var guide = new cc.Node("guide");
+var gl2 = guide.addComponent(cc.Label);
+gl2.fontSize = 12; gl2.isBold = !0; gl2.isSystemFontUsed = !0; gl2.lineHeight = 17;
+gl2.string = "指引: ①驯化场驯服魔物(打残别打死) ②编队 ③秘境远征赚魔晶 ④升驯兽师 ⑤深入更远秘境";
+gl2.color = new cc.Color(255, 235, 150, 255);
+guide.setPosition(0, H / 2 - 100);
+panel.addChild(guide);
 var up = new cc.Node("up");
 up.setContentSize(220, 36);
 var ug = up.addComponent(cc.Graphics);
@@ -29868,6 +29884,30 @@ tm.setPosition(210, -H / 2 + 40);
 panel.addChild(tm);
 tm.on(cc.Node.EventType.TOUCH_END, function() {
 cc.showBeastTame();
+});
+var ab = new cc.Node("autobtn");
+ab.setContentSize(220, 34);
+var abg = ab.addComponent(cc.Graphics);
+abg.fillColor = new cc.Color(150, 90, 210, 255);
+abg.roundRect(-110, -17, 220, 34, 5);
+abg.fill();
+var alb = new cc.Node("alb");
+var all2 = alb.addComponent(cc.Label);
+all2.fontSize = 12; all2.isBold = !0; all2.isSystemFontUsed = !0; all2.lineHeight = 16;
+all2.string = "一键编入最强3只";
+all2.color = cc.Color.WHITE;
+alb.setPosition(0, 0);
+ab.addChild(alb);
+ab.setPosition(0, -H / 2 + 92);
+panel.addChild(ab);
+ab.on(cc.Node.EventType.TOUCH_END, function() {
+if (pd.petbag.length < 1) { cc.uiHelper.showTips("还没有魔物, 先去驯化场!"); return; }
+var sorted = pd.petbag.slice().sort(function(a2, b2) { return (b2.lv || 1) - (a2.lv || 1); });
+pd.beastTeam = [];
+for (var ai = 0; ai < Math.min(3, sorted.length); ai++) pd.beastTeam.push(sorted[ai].uuid);
+pd.saveflag = !0;
+cc.uiHelper.showTips("已编入最强 " + pd.beastTeam.length + " 只!");
+cc.showBeastPanel();
 });
 var sancts = cc.beastSancts;
 for (var si = 0; si < sancts.length; si++) {
@@ -29938,7 +29978,7 @@ var curG = Math.min(11, Math.floor(((pd.stage || 1) - 1) / 5));
 if (void 0 === cc._tameTab) cc._tameTab = curG;
 cc._tameTab = Math.min(cc._tameTab, curG);
 var panel = new cc.Node("beast_tame");
-var W = 640, H = 520;
+var W = 640, H = Math.min(520, ((cc.winSize && cc.winSize.height) || 540) * 0.92);
 panel.setContentSize(W, H);
 panel.setPosition(0, 0);
 var pg = panel.addComponent(cc.Graphics);
@@ -30015,7 +30055,7 @@ var dll = dl.addComponent(cc.Label);
 dll.fontSize = 12; dll.isBold = !0; dll.isSystemFontUsed = !0; dll.lineHeight = 16;
 dll.anchorX = 0;
 dll.setPosition(-(W - 40) / 2 + 220, 0);
-dll.string = first ? "首次驯服: 魔晶+" + (30 + star * 15) : "已收录";
+dll.string = (first ? "首捕+" + (30 + star * 15) + "魔晶" : "已收录") + " · 野怪Lv≈" + Math.max(1, Math.floor((pd.stage || 1) * 0.8) + star * 3);
 dll.color = first ? new cc.Color(255, 200, 90, 255) : new cc.Color(120, 230, 150, 255);
 row.addChild(dl);
 var gl = new cc.Node("gl");
@@ -30178,7 +30218,8 @@ cc.director.loadScene("game");
 cc.tameRate = function(hpp) {
 var pd = cc.playerData;
 var g = (cc.tame && cc.tame.g) || 0;
-var rc = [ 0, 1, 1.8, 2.8 ][(cc.tame && cc.tame.rune) || 1] || 1;
+var rn = cc.tame ? cc.tame.rune : 1;
+var rc = [ 1, 1.8, 2.8 ][rn] || 1;
 var r = rc * (1 - hpp) * (1 + (pd.tameLv || 0) * 0.05) * (1 - g * 0.03);
 return Math.max(0.02, Math.min(0.95, r));
 };
@@ -30210,7 +30251,7 @@ cc.tame = null;
 var sc = cc.director.getScene();
 if (!sc || sc.name != "main") cc.director.loadScene("main");
 setTimeout(function() {
-cc.showTameResult(!0, mname + " Lv." + lv + " 加入了你的队伍!", gem, Math.round(rate * 100));
+cc.showTameResult(!0, mname + " Lv." + lv + " 入队! 快去编队并出征秘境", gem, Math.round(rate * 100));
 }, 900);
 };
 cc.tameFail = function(msg) {
@@ -30290,7 +30331,7 @@ cc._tameTimerNode = new cc.Node("tameTimer");
 var lb = cc._tameTimerNode.addComponent(cc.Label);
 lb.fontSize = 20; lb.isBold = !0; lb.isSystemFontUsed = !0; lb.lineHeight = 24;
 lb.color = new cc.Color(255, 180, 90, 255);
-cc._tameTimerNode.setPosition(0, 300);
+cc._tameTimerNode.setPosition(0, ((cc.winSize && cc.winSize.height) || 540) * 0.36);
 cv.addChild(cc._tameTimerNode, 99998);
 }
 var bo = cc.battlelogic && cc.battlelogic.bossobj;
@@ -30312,7 +30353,7 @@ if (cc._beastPanel && cc._beastPanel.isValid) { cc._beastPanel.destroy(); cc._be
 var pd = cc.playerData;
 if (void 0 === cc._btPage) cc._btPage = 0;
 var panel = new cc.Node("beast_team");
-var W = 640, H = 520;
+var W = 640, H = Math.min(520, ((cc.winSize && cc.winSize.height) || 540) * 0.92);
 panel.setContentSize(W, H);
 panel.setPosition(0, 0);
 var pg = panel.addComponent(cc.Graphics);
@@ -30474,7 +30515,7 @@ var maxDeep = 4 + rep;
 if (cc.exped.deep >= maxDeep || cc.exped.fatigue >= 100) { cc.expedSettle(); return; }
 if (cc._beastPanel && cc._beastPanel.isValid) { cc._beastPanel.destroy(); cc._beastPanel = null; }
 var panel = new cc.Node("exped");
-var W = 700, H = 500;
+var W = 700, H = Math.min(500, ((cc.winSize && cc.winSize.height) || 540) * 0.9);
 panel.setContentSize(W, H);
 panel.setPosition(0, 0);
 var pg = panel.addComponent(cc.Graphics);
@@ -30557,7 +30598,9 @@ card.addChild(ob);
 ob.on(cc.Node.EventType.TOUCH_END, function() {
 var roll = Math.random() * 100;
 var win = roll < rate;
+if (opt.okCost && (pd.beastGem || 0) < opt.okCost) { cc.uiHelper.showTips("魔晶不足, 无法选择该项"); return; }
 if (win) {
+if (opt.okCost) pd.beastGem = (pd.beastGem || 0) - opt.okCost;
 if (opt.okGem) { cc.exped.gem += opt.okGem; pd.beastGem = (pd.beastGem || 0) + opt.okGem; pd.saveflag = !0; }
 if (opt.okDeep) cc.exped.deep += opt.okDeep;
 if (opt.okRest) cc.exped.fatigue = Math.max(0, cc.exped.fatigue - opt.okRest);
@@ -30569,6 +30612,7 @@ cc.uiHelper.showTips(opt.fail);
 cc.exped.fatigue += opt.failFat || 0;
 }
 cc.exped.deep++;
+cc.exped.fatigue += 10;
 cc.exped.buff = Math.max(0, (cc.exped.buff || 0) - 3);
 cc.showExpedEvent();
 });
